@@ -5,5 +5,383 @@
 		"version": "1.0.0"
 	},
 	"paths": {
+		"/Api/Ciudades/": {
+			"get": {
+				"tags": [
+					"Ciudades"
+				],
+				"summary": "Resumen nuevo método",
+				"description": "Descripción para la ruta /Api/Ciudades/ -- method: get",
+				"responses": {
+					"200": {
+						"description": "mis respuestas por defecto",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"body": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"patch": {
+				"tags": [
+					"Ciudades"
+				],
+				"summary": "Resumen nuevo método",
+				"description": "Descripción para la ruta /Api/Ciudades/ -- method: patch",
+				"responses": {
+					"200": {
+						"description": "mis respuestas por defecto",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"body": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/Api/Ciudades/Lista": {
+			"get": {
+				"tags": [
+					"Ciudades"
+				],
+				"summary": "Resumen nuevo método",
+				"description": "Descripción para la ruta /Api/Ciudades/Lista -- method: get",
+				"responses": {
+					"200": {
+						"description": "mis respuestas por defecto",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"body": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/Api/Ciudades/CiudadDane/{dane}": {
+			"get": {
+				"tags": [
+					"Ciudades"
+				],
+				"summary": "Resumen nuevo método",
+				"description": "Descripción para la ruta /Api/Ciudades/CiudadDane/{dane} -- method: get",
+				"responses": {
+					"200": {
+						"description": "mis respuestas por defecto",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"body": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "dane",
+						"in": "path",
+						"required": true
+					}
+				]
+			}
+		},
+		"/Api/Heka/Cotizar": {
+			"post": {
+				"tags": [
+					"Heka"
+				],
+				"summary": "Resumen nuevo método",
+				"description": "Descripción para la ruta /Api/Heka/Cotizar -- method: post",
+				"requestBody": {
+					"description": "Se agrega requestBody genérico porque el método ingresado es de tipo: post",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Cotizar"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "mis respuestas por defecto",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"body": {
+											"$ref": "#/components/schemas/RespuestaCotizar"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/Api/Servientrega/Cotizar": {
+			"post": {
+				"tags": [
+					"Servientrega"
+				],
+				"summary": "Resumen nuevo método",
+				"description": "Descripción para la ruta /Api/Servientrega/Cotizar -- method: post",
+				"requestBody": {
+					"description": "Se agrega requestBody genérico porque el método ingresado es de tipo: post",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Cotizar"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "mis respuestas por defecto",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"body": {
+											"type": "object"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"Cotizar": {
+				"type": "object",
+				"properties": {
+					"peso": {
+						"type": "integer"
+					},
+					"alto": {
+						"type": "integer"
+					},
+					"largo": {
+						"type": "integer"
+					},
+					"ancho": {
+						"type": "integer"
+					},
+					"valorSeguro": {
+						"type": "integer"
+					},
+					"valorRecaudo": {
+						"type": "integer"
+					},
+					"idDaneCiudadOrigen": {
+						"type": "string"
+					},
+					"idDaneCiudadDestino": {
+						"type": "string"
+					},
+					"tipo": {
+						"type": "string"
+					}
+				}
+			},
+			"RespuestaCotizar": {
+				"type": "object",
+				"properties": {
+					"resultado": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/RespuestaExitosaCotizar"
+						}
+					},
+					"errores": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"error": {
+									"type": "boolean"
+								},
+								"transportadora": {
+									"type": "string"
+								},
+								"message": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			},
+			"RespuestaExitosaCotizar": {
+				"type": "object",
+				"properties": {
+					"transportadora": {
+						"type": "string"
+					},
+					"tiempoEntrega": {
+						"type": "string"
+					},
+					"seguroMercancia": {
+						"type": "integer"
+					},
+					"sobreflete": {
+						"type": "integer"
+					},
+					"flete": {
+						"type": "integer"
+					},
+					"detalles": {
+						"$ref": "#/components/schemas/DetallesCotizar"
+					},
+					"habilitada": {
+						"type": "boolean"
+					},
+					"sobrefleteHeka": {
+						"type": "integer"
+					},
+					"costoEnvio": {
+						"type": "integer"
+					}
+				}
+			},
+			"DetallesCotizar": {
+				"type": "object",
+				"properties": {
+					"peso_real": {
+						"type": "integer"
+					},
+					"peso_liquidar": {
+						"type": "integer"
+					},
+					"peso_con_volumen": {
+						"type": "integer"
+					},
+					"recaudo": {
+						"type": "integer"
+					},
+					"seguro": {
+						"type": "integer"
+					},
+					"flete": {
+						"type": "integer"
+					},
+					"comision_heka": {
+						"type": "integer"
+					},
+					"comision_trasportadora": {
+						"type": "integer"
+					},
+					"total": {
+						"type": "integer"
+					},
+					"costoDevolucion": {
+						"type": "integer"
+					}
+				}
+			},
+			"RespuestaGeneral": {
+				"type": "object",
+				"properties": {
+					"error": {
+						"type": "boolean",
+						"example": false
+					},
+					"status": {
+						"type": "integer"
+					},
+					"body": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"securitySchemes": {
+			"auth": {
+				"type": "apiKey",
+				"name": "authentication",
+				"in": "header"
+			}
+		}
 	}
 }

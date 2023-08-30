@@ -1,6 +1,6 @@
 const express = require("express");
 const fs = require("fs");
-const { agregarRuta, actualizarDocumentacion } = require("../Utils/swaggerGen");
+const { agregarRuta } = require("../Utils/swaggerGen");
 
 const router = express.Router();
 
@@ -20,7 +20,6 @@ directorios.filter(dir => !directoriosExcepcion.includes(dir))
 
    // Agregando el generador de documentación de swagger
    routers.stack.forEach(s => {
-      console.log(s.route);
       const path = s.route.path;
       const nombreRuta = `/Api/${name}${path}`;
       const method = Object.keys(s.route.methods)[0];
@@ -30,6 +29,5 @@ directorios.filter(dir => !directoriosExcepcion.includes(dir))
    router.use("/"+name, routers);
 });
 
-actualizarDocumentacion();
 
 module.exports = router;
