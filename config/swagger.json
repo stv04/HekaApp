@@ -2,7 +2,8 @@
 	"openapi": "3.0.0",
 	"info": {
 		"title": "Heka App",
-		"version": "1.0.0"
+		"version": "1.0.0",
+		"description": "Api que será utilizada para nuevas actualizaciones sobre heka entrega, en el cual estarán métodos básicos de comunicación, que necesiten estar presente en varios lugares."
 	},
 	"paths": {
 		"/Api/Ciudades/": {
@@ -10,8 +11,8 @@
 				"tags": [
 					"Ciudades"
 				],
-				"summary": "Resumen nuevo método",
-				"description": "Descripción para la ruta /Api/Ciudades/ -- method: get",
+				"summary": "Lista detallada de ciudades",
+				"description": "Muestra de forma muy detallada el global de todas las ciudades establecidas en base de datos",
 				"responses": {
 					"200": {
 						"description": "mis respuestas por defecto",
@@ -41,8 +42,8 @@
 				"tags": [
 					"Ciudades"
 				],
-				"summary": "Resumen nuevo método",
-				"description": "Descripción para la ruta /Api/Ciudades/ -- method: patch",
+				"summary": "Actulizar ciudad",
+				"description": "Actualiza la ciudad ingresada",
 				"responses": {
 					"200": {
 						"description": "mis respuestas por defecto",
@@ -74,8 +75,8 @@
 				"tags": [
 					"Ciudades"
 				],
-				"summary": "Resumen nuevo método",
-				"description": "Descripción para la ruta /Api/Ciudades/Lista -- method: get",
+				"summary": "Lista de ciudades",
+				"description": "Una lista simplificada de ciudades que pueda mostrarse directamente sobre el cotizador",
 				"responses": {
 					"200": {
 						"description": "mis respuestas por defecto",
@@ -107,8 +108,8 @@
 				"tags": [
 					"Ciudades"
 				],
-				"summary": "Resumen nuevo método",
-				"description": "Descripción para la ruta /Api/Ciudades/CiudadDane/{dane} -- method: get",
+				"summary": "Obtener una sola ciudad por su código dane",
+				"description": "Permite obtener los detalles de una sola ciudad a través de su código dane",
 				"responses": {
 					"200": {
 						"description": "mis respuestas por defecto",
@@ -147,8 +148,8 @@
 				"tags": [
 					"Heka"
 				],
-				"summary": "Resumen nuevo método",
-				"description": "Descripción para la ruta /Api/Heka/Cotizar -- method: post",
+				"summary": "Cotizador heka",
+				"description": "Permite cotizar de manera global todas las transportadoras disponible para cotización y las devuelven en un conjunto, mostrando por a parte las que tengan error",
 				"requestBody": {
 					"description": "Se agrega requestBody genérico porque el método ingresado es de tipo: post",
 					"content": {
@@ -162,7 +163,7 @@
 				},
 				"responses": {
 					"200": {
-						"description": "mis respuestas por defecto",
+						"description": "Muestra la lista de respuestas correcta para las transportadoras que tuvieron un proceso correcto de cotización y las que obtuvieron errores al cotizar por otro lado.",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -196,8 +197,8 @@
 				"tags": [
 					"Servientrega"
 				],
-				"summary": "Resumen nuevo método",
-				"description": "Descripción para la ruta /Api/Servientrega/Cotizar -- method: post",
+				"summary": "Cotizador heka solo para servientrega",
+				"description": "Muestra solo la respuesta detallada por parte de la transportadora de servientrega",
 				"requestBody": {
 					"description": "Se agrega requestBody genérico porque el método ingresado es de tipo: post",
 					"content": {
