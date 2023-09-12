@@ -34,4 +34,4 @@ Con tan solo crear una carpeta dentro de la carpeta api, es necesario crear un a
 |procesos| Generador de procesos alternos|
 |Schemas| Los esquemas que se utilizarán con Zod|
 |storage|Base de datos|
-|Utils|Funcionaes que pueden ser de utilidad en todo el proyecto|
+|Utils|Funciones que pueden ser de utilidad en todo el proyecto|
