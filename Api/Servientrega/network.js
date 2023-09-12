@@ -2,6 +2,7 @@ const { calcularVolumen, calcularValorSeguro, costoDevolucion, validarPesoIngres
 const { COD_SERVIENTREGA, transportadoras, CONTRAENTREGA, CONVENCIONAL } = require("../../config/constantes");
 const { getOne } = require("../Ciudades/network");
 const { UsuarioPrueba, Credenciales } = require("./keys");
+const fetch = require("node-fetch");
 
 exports.cotizarServi = async (consultaCotizacion) => {
 

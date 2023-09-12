@@ -2,6 +2,7 @@ const { calcularVolumen, calcularValorSeguro, validarPesoIngresado, costoDevoluc
 const { estandarizarFecha } = require("../../Utils/funciones");
 const { COD_INTERRAPIDISIMO, CONTRAENTREGA, CONVENCIONAL, transportadoras } = require("../../config/constantes");
 const { pathCotizar } = require("./keys");
+const fetch = require("node-fetch");
 
 exports.cotizarInter = async (consultaCotizacion) => {
     // #region Procedimiento pre cotizar
