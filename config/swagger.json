@@ -186,7 +186,7 @@
 				},
 				"security": [
 					{
-					  "api_key": []
+					  "auth": []
 					}
 				]
 			}
@@ -235,7 +235,7 @@
 				},
 				"security": [
 					{
-					  "api_key": []
+					  "auth": []
 					}
 				]
 			}
@@ -389,7 +389,7 @@
 		"securitySchemes": {
 			"auth": {
 				"type": "apiKey",
-				"name": "authentication",
+				"name": "Authentication",
 				"in": "header"
 			}
 		}
