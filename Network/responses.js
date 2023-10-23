@@ -15,7 +15,6 @@ function RSuccess(req, res, body, status) {
 
 function RError(req, res, message, status) {
     const statusCode = status || 500;
-    const statusMessage = message || "Error interno.";
 
     res.status(statusCode)
     .json({
@@ -25,14 +24,39 @@ function RError(req, res, message, status) {
     });
 }
 
-function TrowError(message, statusCode = 409) {
+function RCatchError(req, res, error) {
+    const statusCode = error.statusCode || 500;
+    const statusMessage = error.message || "Error interno.";
+
+    const response = {
+        error: true,
+        status: statusCode,
+        body: statusMessage,
+        code: error.code || null
+    }
+
+    res.status(statusCode)
+    .json(response);
+}
+
+function ThrowError(message, code, statusCode = 409) {
     const err = new Error(message);
 
     err.statusCode = statusCode;
+    err.code = code
+    
+    throw err;
+}
+
+function ThrowSpecifiedError(struct) {
+    const err = new Error(struct.message);
+
+    err.statusCode = struct.statusCode || 409;
+    err.code = struct.code
     
     throw err;
 }
 
 module.exports = {
-    RSuccess, RError, TrowError
+    RSuccess, RError, RCatchError, ThrowError, ThrowSpecifiedError
 }

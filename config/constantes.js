@@ -107,11 +107,37 @@ const transportadoras = {
     },
 };
 
+const codigosError = {
+    "C001": {
+        code: "C001",
+        title: "La ciudad destino no está dispoible para cotizar.",
+        description: "La ciudad que se está tratando de cotizar se encuentra bloqueada y por lo tanto no se podrá cotizar con ninguna transportadora."
+    },
+    "C002": {
+        code: "C002",
+        title: "La transportadora no está habilitada para la ciudad",
+        description: "Aunque la ciudad se encuentra activa de forma general, está bloqueada para una transportadora en concreto."
+    },
+    "C003": {
+        code: "C003",
+        title: "La transportadora no está disponible en estos momentos.",
+        description: "La transportadora existe como parámetro, pero internamente está bloqueada."
+    },
+    "C004": {
+        code: "C004",
+        title: "La transportadora no está disponible en el cotizador",
+        description: "La transportadora no ha sido parametrizada de ninguna forma sobre el cotizador."
+    },
+}
+
+
 module.exports = {
     transportadoras,
     codigosTransportadora,
     COD_COORDINADORA,
     COD_ENVIA,
     COD_INTERRAPIDISIMO,
-    COD_SERVIENTREGA, COD_TCC
+    COD_SERVIENTREGA, COD_TCC,
+
+    codigosError
 }

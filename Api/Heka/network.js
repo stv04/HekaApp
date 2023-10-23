@@ -1,8 +1,8 @@
 const { doc, getDoc } = require("firebase/firestore");
 const { db } = require("../../storage/firebase");
-const { TrowError } = require("../../Network/responses");
+const { ThrowError, ThrowSpecifiedError } = require("../../Network/responses");
 const { getOne } = require("../Ciudades/network");
-const { transportadoras, COD_SERVIENTREGA, COD_INTERRAPIDISIMO } = require("../../config/constantes");
+const { transportadoras, COD_SERVIENTREGA, COD_INTERRAPIDISIMO, codigosError } = require("../../config/constantes");
 const { cotizarServi, calcularPreciosAdicionalesServientrega } = require("../Servientrega/network");
 const { cotizarInter, calcularPreciosAdicionalesInterrapidisimo } = require("../Inter/network");
 
@@ -35,7 +35,7 @@ exports.cotizador = async (reqCotizacion) => {
     const ciudadOrigen = await getOne(reqCotizacion.idDaneCiudadOrigen);
     const ciudadDestino = await getOne(reqCotizacion.idDaneCiudadDestino);
 
-    if(ciudadDestino.bloqueada) TrowError("La transportadora destino no está dispoible para cotizar.");
+    if(ciudadDestino.bloqueada) ThrowSpecifiedError(codigosError.C001);
 
     const transportadorasActivasCiudadDestino = Object.keys(ciudadDestino.transportadoras);
     const transportadorasCiudad = transportadorasActivasCiudadDestino.filter(t => (
@@ -55,18 +55,42 @@ exports.cotizador = async (reqCotizacion) => {
     return response;
 }
 
+exports.cotizadorTransportadora = async (reqCotizacion) => {
+    const ciudadDestino = await getOne(reqCotizacion.idDaneCiudadDestino);
+    const t = reqCotizacion.transportadora;
+    if(ciudadDestino.bloqueada) ThrowSpecifiedError(codigosError.C001);
+
+    const configTransportadoraPorCiudad = ciudadDestino.transportadora[t];
+
+    if(configTransportadoraPorCiudad && configTransportadoraPorCiudad.bloqueada) 
+        ThrowSpecifiedError(codigosError.C002);
+
+    if(transportadoras[t] && transportadoras[t].bloqueada === true)
+        ThrowSpecifiedError(codigosError.C003);
+
+    if(!cotizacionesDisponibLes[t])
+        ThrowSpecifiedError(codigosError.C004);
+
+    const cotizadorTransportadora = cotizacionesDisponibLes[t];
+
+    const response = await cotizadorTransportadora(reqCotizacion);
+
+    return response;
+
+}
+
 exports.obtenerValoresCotizacion = async (headers) => {
     const autenticacion = headers.authentication;
     
     console.log(autenticacion);
 
-    if(!autenticacion) TrowError("Se debe autenticar el usuario");
+    if(!autenticacion) ThrowError("Se debe autenticar el usuario");
 
     
     const coll = doc(db, "usuarios", autenticacion);
 
     const d = await getDoc(coll);
-    if(!d.exists()) TrowError("Autenticación inválida, usuario no encontrado", 404);
+    if(!d.exists()) ThrowError("Autenticación inválida, usuario no encontrado", 404);
     const infoEncontrada = d.data().datos_personalizados;
     Object.keys(infoEncontrada).forEach(k => {
         const valor = infoEncontrada[k];
@@ -118,5 +142,4 @@ function destallesCotizacion(consultaCotizacion, respuestaCotizaicon, personaliz
         // costoDevolucion: this.costoDevolucion
     }
 }
-
 
