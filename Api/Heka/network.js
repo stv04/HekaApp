@@ -2,7 +2,7 @@ const { doc, getDoc } = require("firebase/firestore");
 const { db } = require("../../storage/firebase");
 const { ThrowError, ThrowSpecifiedError } = require("../../Network/responses");
 const { getOne } = require("../Ciudades/network");
-const { transportadoras, COD_SERVIENTREGA, COD_INTERRAPIDISIMO, codigosError } = require("../../config/constantes");
+const { transportadoras, COD_SERVIENTREGA, COD_INTERRAPIDISIMO, codigosError, CONTRAENTREGA, COD_ENVIA } = require("../../config/constantes");
 const { cotizarServi, calcularPreciosAdicionalesServientrega } = require("../Servientrega/network");
 const { cotizarInter, calcularPreciosAdicionalesInterrapidisimo } = require("../Inter/network");
 
@@ -82,8 +82,6 @@ exports.cotizadorTransportadora = async (reqCotizacion) => {
 exports.obtenerValoresCotizacion = async (headers) => {
     const autenticacion = headers.authentication;
     
-    console.log(autenticacion);
-
     if(!autenticacion) ThrowError("Se debe autenticar el usuario");
 
     
@@ -122,6 +120,10 @@ exports.modificarRespuestaCotizacion = (solicitudCotizacion, cotizaciones, param
             default:
             break;
         }
+
+        if(solicitudCotizacion.tipo === CONTRAENTREGA) {
+            sumarCostoDeEnvio(solicitudCotizacion, c);
+        }
         
     });
 
@@ -143,3 +145,17 @@ function destallesCotizacion(consultaCotizacion, respuestaCotizaicon, personaliz
     }
 }
 
+function sumarCostoDeEnvio(solicitudCotizacion, cotizacion) {
+  let counter = 0;
+  const {detalles} = cotizacion;
+//   return;
+  const {valorRecaudo} = solicitudCotizacion;
+
+  while (valorRecaudo > Math.round(detalles.recaudo - cotizacion.costoEnvio) && counter < 10) {
+    detalles.recaudo = Math.round(valorRecaudo + cotizacion.costoEnvio);
+    detalles.seguro =
+      cotizacion.transportadora === COD_ENVIA ? detalles.seguro : detalles.recaudo;
+    
+    counter++;
+  }
+}

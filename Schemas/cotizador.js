@@ -1,4 +1,18 @@
+const i18next = require("i18next");
 const z = require("zod");
+const {zodI18nMap} = require("zod-i18n-map");
+const translation = require("zod-i18n-map/locales/es/zod.json");
+
+const { CONVENCIONAL, PAGO_CONTRAENTREGA, CONTRAENTREGA } = require("../config/constantes");
+
+i18next.init({
+    lng: "es",
+    resources: {
+        es: { zod: translation },
+    }
+});
+
+z.setErrorMap(zodI18nMap);
 
 const SchCotizar = z.object({
     peso: z.number(), // El peso indicado del paquete
@@ -9,7 +23,7 @@ const SchCotizar = z.object({
     valorRecaudo: z.number(), // tiene que ver con el valor que se le va a solicitar en un envío no convencional
     idDaneCiudadOrigen: z.string(), // id Código dane de la ciudad de origen
     idDaneCiudadDestino: z.string(), // id Código dane de la ciudad de destino
-    tipo: z.string(), // Tipo de cotización (pago contraentrega, convencional, común)
+    tipo: z.enum([CONVENCIONAL, PAGO_CONTRAENTREGA, CONTRAENTREGA]), // Tipo de cotización (pago contraentrega, convencional, común)
 });
 
 module.exports = {SchCotizar}

@@ -19,7 +19,7 @@ exports.cotizarServi = async (consultaCotizacion) => {
   const peso = Math.max(consultaCotizacion.peso, configuracion.limitesPeso[0], pesoVolumen);
   let valorSeguro = calcularValorSeguro(seguro, COD_SERVIENTREGA, peso);
 
-  if(consultaCotizacion.tipo === CONTRAENTREGA) valorSeguro = 0;
+  if(consultaCotizacion.tipo === CONVENCIONAL) valorSeguro = 0;
 
   const detallesAlCotizar = {
     peso_real: consultaCotizacion.peso,
@@ -49,7 +49,7 @@ exports.cotizarServi = async (consultaCotizacion) => {
     ValorDeclarado: valorSeguro,
     IdDaneCiudadOrigen: consultaCotizacion.idDaneCiudadOrigen,
     IdDaneCiudadDestino: consultaCotizacion.idDaneCiudadDestino,
-    EnvioConCobro: consultaCotizacion.tipo != "CONVENCIONAL",
+    EnvioConCobro: consultaCotizacion.tipo !== CONVENCIONAL,
     FormaPago: 2,
     TiempoEntrega: 1,
     // MEDIO DE TRANSPORTE COD 1 = TERRESTRE
@@ -57,7 +57,7 @@ exports.cotizarServi = async (consultaCotizacion) => {
     NumRecaudo: valorSeguro,
   };
 
-//  return res.json(data)
+
   const response = await fetch(
     "http://web.servientrega.com:8058/CotizadorCorporativo/api/Cotizacion",
     {
