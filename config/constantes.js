@@ -107,6 +107,7 @@ const transportadoras = {
     },
 };
 
+// Lista de todos los errores narutalmente devueltos y controlados
 const codigosError = {
     "C001": {
         code: "C001",

@@ -42,6 +42,12 @@ async function update(dane_ciudad) {
     return true;
 }
 
+/**
+ * La función `getOne` recupera datos de una ciudad específica de una base de datos de Firestore.
+ * @param dane_ciudad - El parámetro "dane_ciudad" representa el identificador de la ciudad que estás
+ * buscando en la colección "ciudades".
+ * @returns los datos de la ciudad que se busca.
+ */
 async function getOne(dane_ciudad) {
     const coll = doc(db, "ciudades", dane_ciudad);
     const d = await getDoc(coll);

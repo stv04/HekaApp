@@ -4,6 +4,8 @@ const { COD_INTERRAPIDISIMO, CONTRAENTREGA, CONVENCIONAL, transportadoras } = re
 const { pathCotizar } = require("./keys");
 const fetch = require("node-fetch");
 
+/* La función `exports.cotizarInter` se encarga de calcular el costo de envío y otros detalles de un
+envío determinado utilizando el servicio de transporte Inter Rapidisimo. */
 exports.cotizarInter = async (consultaCotizacion) => {
     // #region Procedimiento pre cotizar
     const factor_de_conversion = 1 / 6000;
@@ -84,6 +86,10 @@ exports.cotizarInter = async (consultaCotizacion) => {
     }
 }
 
+/* Calcula precios adicionales para el
+servicio de transporte Inter Rapidisimo en base a la solicitud de cotización
+(`solicitudCotizacion`), la respuesta de cotización (`respuestaCotizacion`) y los precios
+personalizados (`preciosPersonalizados`). */
 exports.calcularPreciosAdicionalesInterrapidisimo = (solicitudCotizacion, respuestaCotizacion, preciosPersonalizados) => {
     let comision_heka = preciosPersonalizados.comision_heka;
     let constante_heka = preciosPersonalizados.constante_pagoContraentrega;
@@ -113,4 +119,4 @@ exports.calcularPreciosAdicionalesInterrapidisimo = (solicitudCotizacion, respue
     // #endregion
   
     return respuestaCotizacion;
-  }
+}

@@ -4,6 +4,8 @@ const { getOne } = require("../Ciudades/network");
 const { UsuarioPrueba, Credenciales } = require("./keys");
 const fetch = require("node-fetch");
 
+/* Se encarga de calcular el coste del envío utilizando el servicio
+de transporte Servientrega. */
 exports.cotizarServi = async (consultaCotizacion) => {
 
   const configuracion = transportadoras[COD_SERVIENTREGA];
@@ -11,9 +13,11 @@ exports.cotizarServi = async (consultaCotizacion) => {
   const seguro = recaudo ?? consultaCotizacion.valorSeguro;
   const factor_conversion = 222 / 1e6;
   
+  // Se utiliza la función para determinar si el peso está dentro de los parámetros permitidos
   const pesoObstuso = validarPesoIngresado(consultaCotizacion.peso, COD_SERVIENTREGA);
   if(pesoObstuso) return pesoObstuso;
   
+  // Solo tomas las medidas del paquete para calcular el volumen
   const volumen = calcularVolumen(consultaCotizacion);
   const pesoVolumen = Math.ceil(volumen * factor_conversion);
   const peso = Math.max(consultaCotizacion.peso, configuracion.limitesPeso[0], pesoVolumen);
@@ -101,6 +105,10 @@ exports.cotizarServi = async (consultaCotizacion) => {
   return valoresCotizacion;
 };
 
+/* Se encarga de calcular precios adicionales para un envío Servientrega. 
+Toma tres parámetros: `solicitudCotizacion` (solicitud de
+cotización), `respuestaCotizacion` (respuesta de cotización) y `preciosPersonalizados` (precios
+personalizados). Que es IMPORTANTE usar una vez se concrete la petición de cotización*/
 exports.calcularPreciosAdicionalesServientrega = (solicitudCotizacion, respuestaCotizacion, preciosPersonalizados) => {
   const isConvencional = solicitudCotizacion.tipo === CONVENCIONAL;
 
@@ -121,6 +129,7 @@ exports.calcularPreciosAdicionalesServientrega = (solicitudCotizacion, respuesta
     seguroMercancia = respuestaCotizacion.sobreflete;
 
   }
+
   // COSTO DE ENVÍO: flete + el resto de sobrefletes
   // SOBREFLETES:
   //  - sobreflete: Sobre flete calculado par ala transportadora de forma manual ( si es convencional pasa a ser cero)
@@ -154,6 +163,15 @@ exports.calcularPreciosAdicionalesServientrega = (solicitudCotizacion, respuesta
   return respuestaCotizacion;
 }
 
+/**
+ * La función "tiempoEntrega" calcula el tiempo estimado de entrega en función del origen y destino de
+ * un paquete.
+ * @param c_origen - El parámetro "c_origen" representa la ciudad o ubicación de origen desde donde se
+ * realiza la entrega.
+ * @param c_destino - El código de la ciudad de destino.
+ * @returns una cadena que representa el tiempo de entrega estimado para un paquete según las ciudades
+ * de origen y destino.
+ */
 function tiempoEntrega(c_origen, c_destino) {
   const trayecto = revisarTrayecto(c_origen, c_destino);
   switch(trayecto) {
@@ -167,6 +185,16 @@ function tiempoEntrega(c_origen, c_destino) {
   }
 }
 
+/**
+ * La función "revisarTrayecto" determina el tipo de viaje en función de los parámetros de origen y
+ * destino.
+ * @param c_origen - El parámetro c_origen representa el origen del viaje. Contiene información sobre
+ * la ubicación de origen, como su identificación y departamento.
+ * @param c_destino - El objeto de destino, que contiene información sobre la ubicación de destino.
+ * @returns una cadena que indica el tipo de trayectoria (viaje) en función del origen y destino dados.
+ * Los posibles valores de retorno son "Especial" para ruta especial, "Urbano" para ruta urbana,
+ * "Zonal" para ruta zonal y "Nacional" para ruta nacional. Si el destino es type_try
+ */
 function revisarTrayecto(c_origen, c_destino){
   if(c_destino.tipo_trayecto == undefined) return "NA";
 

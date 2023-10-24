@@ -1,9 +1,20 @@
+
+/* El código define una función llamada `estandarizarFecha` que toma tres parámetros: `date`,
+`specialFormat` y `parseHour`. y devuelve un string con el formato de fecha que se necesita */
 exports.estandarizarFecha = (date, specialFormat, parseHour) => {
+    // Toma la fecha ingresada o genera una nueva en base al momento que se utiliza la función
     const fecha = new Date(date || new Date().getTime());
     
+    // Si el formato de fecha no es el correcto, retorna la misma información que fue recibida
     if(isNaN(fecha.getTime())) return date;
     
+    /**
+     * Toma un número `n` y devuelve una representación de cadena de `n` con un cero
+     * a la izquierda si `n` es menor que 10.
+     */
     const norm = n => n < 10 ? "0" + n : n;
+
+    // formatos estandarizados según el string recibido
     const format = {
       D: fecha.getDate(),
       DD: norm(fecha.getDate()),
@@ -19,8 +30,11 @@ exports.estandarizarFecha = (date, specialFormat, parseHour) => {
       ss: norm(fecha.getSeconds()),
     }
   
+    // Se inicializa con el formato por defecto: DD/MM/YYYY
     let res = format.DD + "/" + format.MM + "/" + format.YYYY;
     let originalHour = parseInt(format.H);
+
+    // Encargada de convertir de horario militar al natural si "parseHour" está en true
     if(parseHour) {
       let h = originalHour
       h = h ? h : 12 
@@ -29,6 +43,7 @@ exports.estandarizarFecha = (date, specialFormat, parseHour) => {
       format.H = hourParser;
     }
   
+    // si viene un formato en concreto, se utiliza esa estructura, haciendo match sobre strings literals
     if(specialFormat) {
       res = "";
       const str = specialFormat.match(/(\w+)/g);
@@ -41,12 +56,14 @@ exports.estandarizarFecha = (date, specialFormat, parseHour) => {
         }
       });
   
+      // si es true se utiliza el formato de a.m/p.m
       if(parseHour) {
         res += originalHour > 12 ? "p.m" : "a.m";
       }
       
     }
   
+    // Devuelve un string con la hora formateada
     return res;
 }
 
