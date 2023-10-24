@@ -187,7 +187,7 @@
 				},
 				"security": [
 					{
-					  "auth": []
+						"auth": []
 					}
 				]
 			}
@@ -236,7 +236,66 @@
 				},
 				"security": [
 					{
-					  "auth": []
+						"auth": []
+					}
+				]
+			}
+		},
+		"/Api/Heka/Cotizar/{transportadora}": {
+			"post": {
+				"tags": [
+					"Heka"
+				],
+				"summary": "Resumen nuevo método",
+				"description": "El siguiente método es para poder cotizar pero por una transportadora específica, según el parámetro {transportadora}, y en caso de que no exista, retorna un mensaje de error informando al respecto.",
+				"requestBody": {
+					"description": "El body de request que será utilizado para elbaorar la cotización",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Cotizar"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "mis respuestas por defecto",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"code": {
+											"type": "integer"
+										},
+										"body": {
+											"$ref": "#/components/schemas/RespuestaExitosaCotizar"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "transportadora",
+						"in": "path",
+						"required": true
+					}
+				],
+				"security": [
+					{
+						"auth": []
 					}
 				]
 			}
@@ -288,18 +347,7 @@
 					"errores": {
 						"type": "array",
 						"items": {
-							"type": "object",
-							"properties": {
-								"error": {
-									"type": "boolean"
-								},
-								"transportadora": {
-									"type": "string"
-								},
-								"message": {
-									"type": "string"
-								}
-							}
+							"$ref": "#/components/schemas/RespuestaGeneral"
 						}
 					}
 				}
@@ -379,6 +427,9 @@
 						"example": false
 					},
 					"status": {
+						"type": "integer"
+					},
+					"code": {
 						"type": "integer"
 					},
 					"body": {

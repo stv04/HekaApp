@@ -71,6 +71,7 @@ exports.cotizadorTransportadora = async (reqCotizacion) => {
     // Recibo la ciudad de destino para analizar si está disponible
     const ciudadDestino = await getOne(reqCotizacion.idDaneCiudadDestino);
 
+    if(!ciudadDestino) ThrowSpecifiedError(codigosError.C005);
     // la cotizzación debería manejar la variables de la transportadora, para conocer la seleccionada
     const t = reqCotizacion.transportadora;
 
@@ -78,7 +79,7 @@ exports.cotizadorTransportadora = async (reqCotizacion) => {
     if(ciudadDestino.bloqueada) ThrowSpecifiedError(codigosError.C001);
 
     // Obtenemos las configuraciones dadas para la transportadora en dicha ciudad
-    const configTransportadoraPorCiudad = ciudadDestino.transportadora[t];
+    const configTransportadoraPorCiudad = ciudadDestino.transportadoras[t];
 
     // Si la ciudad destino se encuentra bloqueada devuelve error en la cotización
     if(configTransportadoraPorCiudad && configTransportadoraPorCiudad.bloqueada) 
