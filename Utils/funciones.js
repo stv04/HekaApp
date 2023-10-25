@@ -67,3 +67,15 @@ exports.estandarizarFecha = (date, specialFormat, parseHour) => {
     return res;
 }
 
+exports.normalizarValoresNumericos = (valores) => {
+  const ks = Object.keys(valores);
+  const expInt = /^-?\d+$/;
+  const expDbl = /^-?\d+(\.\d+)?$/;
+
+  ks.forEach(k => {
+      if(expInt.test(valores[k])) valores[k] = parseInt(valores[k]);
+      if(expDbl.test(valores[k])) valores[k] = parseFloat(valores[k]);
+  });
+
+  return valores
+}

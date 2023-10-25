@@ -1,7 +1,5 @@
 const { RSuccess, RError, RCatchError } = require("../../Network/responses");
 const { SchCotizar } = require("../../Schemas/cotizador");
-const { cotizarInter } = require("../Inter/network");
-const { cotizarServi } = require("../Servientrega/network");
 const { obtenerValoresCotizacion, cotizador, modificarRespuestaCotizacion, cotizadorTransportadora } = require("./network");
 
 /* La función `exports.auth` es una función middleware que se utiliza para autenticar una solicitud

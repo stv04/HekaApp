@@ -2,9 +2,12 @@ const { doc, getDoc } = require("firebase/firestore");
 const { db } = require("../../storage/firebase");
 const { ThrowError, ThrowSpecifiedError } = require("../../Network/responses");
 const { getOne } = require("../Ciudades/network");
-const { transportadoras, COD_SERVIENTREGA, COD_INTERRAPIDISIMO, codigosError, CONTRAENTREGA, COD_ENVIA } = require("../../config/constantes");
+const { COD_SERVIENTREGA, COD_INTERRAPIDISIMO, CONTRAENTREGA, COD_ENVIA, COD_COORDINADORA, CONVENCIONAL } = require("../../config/constantes");
 const { cotizarServi, calcularPreciosAdicionalesServientrega } = require("../Servientrega/network");
 const { cotizarInter, calcularPreciosAdicionalesInterrapidisimo } = require("../Inter/network");
+const { cotizarCoord, calcularPreciosAdicionalesCoordinadora } = require("../Coordinadora/network");
+const transportadoras = require("../../config/transportadoras");
+const respuestasError = require("../../Network/respuestasError");
 
 const datos_personalizados = {
     costo_zonal1: 8650,
@@ -27,7 +30,8 @@ const datos_personalizados = {
 // objeto base que importa todas la funciones para cotizar por trasportadora 
 const cotizacionesDisponibLes = {
     [COD_SERVIENTREGA]: cotizarServi,
-    [COD_INTERRAPIDISIMO]: cotizarInter
+    [COD_INTERRAPIDISIMO]: cotizarInter,
+    [COD_COORDINADORA]:cotizarCoord
 }
 
 
@@ -37,7 +41,7 @@ exports.cotizador = async (reqCotizacion) => {
     const ciudadDestino = await getOne(reqCotizacion.idDaneCiudadDestino);
 
     // si se encuentra bloqueada, retorna error porque significa que para la ciudad proporcionada no hay disponibilidad
-    if(ciudadDestino.bloqueada) ThrowSpecifiedError(codigosError.C001);
+    if(ciudadDestino.bloqueada) ThrowSpecifiedError(respuestasError.C001);
 
     
     /* Está recuperando las claves del objeto
@@ -71,27 +75,27 @@ exports.cotizadorTransportadora = async (reqCotizacion) => {
     // Recibo la ciudad de destino para analizar si está disponible
     const ciudadDestino = await getOne(reqCotizacion.idDaneCiudadDestino);
 
-    if(!ciudadDestino) ThrowSpecifiedError(codigosError.C005);
+    if(!ciudadDestino) ThrowSpecifiedError(respuestasError.C005);
     // la cotizzación debería manejar la variables de la transportadora, para conocer la seleccionada
     const t = reqCotizacion.transportadora;
 
     // Si la ciudad destino se encuentra bloqueada retorna error
-    if(ciudadDestino.bloqueada) ThrowSpecifiedError(codigosError.C001);
+    if(ciudadDestino.bloqueada) ThrowSpecifiedError(respuestasError.C001);
 
     // Obtenemos las configuraciones dadas para la transportadora en dicha ciudad
     const configTransportadoraPorCiudad = ciudadDestino.transportadoras[t];
 
     // Si la ciudad destino se encuentra bloqueada devuelve error en la cotización
     if(configTransportadoraPorCiudad && configTransportadoraPorCiudad.bloqueada) 
-        ThrowSpecifiedError(codigosError.C002);
+        ThrowSpecifiedError(respuestasError.C002);
 
     // Analiza también las configuraciones propias de las transportadoras y retorna error en caso que no cumpla con las condiciones
     if(!transportadoras[t] || transportadoras[t].bloqueada === true)
-        ThrowSpecifiedError(codigosError.C003);
+        ThrowSpecifiedError(respuestasError.C003);
 
     // Se retorna error en caso de que entre las cotizaciones disponibles no exista un función encargada de cotizar
     if(!cotizacionesDisponibLes[t])
-        ThrowSpecifiedError(codigosError.C004);
+        ThrowSpecifiedError(respuestasError.C004);
 
     const cotizadorTransportadora = cotizacionesDisponibLes[t];
 
@@ -144,6 +148,8 @@ información adicional y calculando precios adicionales en base a los parámetro
 exports.modificarRespuestaCotizacion = (solicitudCotizacion, cotizaciones, parametros) => {
     cotizaciones.forEach(c => {
         c.habilitada = transportadoras[c.transportadora].habilitada(parametros);
+        agregarSobreFleteHeka(solicitudCotizacion, c, parametros);
+
         switch(c.transportadora) {
             case COD_SERVIENTREGA:
                 calcularPreciosAdicionalesServientrega(solicitudCotizacion, c, parametros);
@@ -151,6 +157,10 @@ exports.modificarRespuestaCotizacion = (solicitudCotizacion, cotizaciones, param
             case COD_INTERRAPIDISIMO: 
                 calcularPreciosAdicionalesInterrapidisimo(solicitudCotizacion, c, parametros);
             break;
+            case COD_COORDINADORA: 
+                calcularPreciosAdicionalesCoordinadora(solicitudCotizacion, c, parametros);
+            break;
+            
             default:
             break;
         }
@@ -164,19 +174,31 @@ exports.modificarRespuestaCotizacion = (solicitudCotizacion, cotizaciones, param
     return cotizaciones;
 }
 
-function destallesCotizacion(consultaCotizacion, respuestaCotizaicon, personalizacionPrecios) {
-    return {
-        peso_real: consultaCotizacion.peso,
-        flete: respuestaCotizaicon.flete,
-        comision_heka: sobreFleteHeka(consultaCotizacion.recaudo, personalizacionPrecios.comision_heka),
-        comision_trasportadora: respuestaCotizaicon.sobreflete + respuestaCotizaicon.seguroMercancia,
-        // peso_liquidar: this.kgTomado,
-        // peso_con_volumen: this.pesoVolumen,
-        // total: this.costoEnvio,
-        // recaudo: this.recaudo,
-        // seguro: this.seguro,
-        // costoDevolucion: this.costoDevolucion
+function agregarSobreFleteHeka(solicitudCotizacion, respuestaCotizacion, preciosPersonalizados) {
+    const sobreFlete = calcularSobrefleteHeka(solicitudCotizacion, respuestaCotizacion, preciosPersonalizados);
+
+    respuestaCotizacion.sobrefleteHeka = sobreFlete;
+    respuestaCotizacion.detalles.comision_heka = sobreFlete; // Se llena con los detalles de la transportadora
+
+}
+
+function calcularSobrefleteHeka(solicitudCotizacion, respuestaCotizacion, preciosPersonalizados) {
+    const isConvencional = solicitudCotizacion.tipo === CONVENCIONAL;
+
+    let comision_heka = preciosPersonalizados.comision_heka;
+    let constante_heka = preciosPersonalizados.constante_pagoContraentrega;
+    let valor = respuestaCotizacion.detalles.seguro;
+    
+
+    if(isConvencional) {
+        constante_heka = preciosPersonalizados.constante_convencional;
+        comision_heka = 1;
+        valor = 0;
     }
+
+    let sobrefleteHeka = Math.ceil(valor * ( comision_heka ) / 100) + constante_heka;
+
+    return sobrefleteHeka;
 }
 
 /**
@@ -191,8 +213,11 @@ function sumarCostoDeEnvio(solicitudCotizacion, cotizacion) {
   const {detalles} = cotizacion;
   const {valorRecaudo} = solicitudCotizacion;
 
+  const minimoRecaudo = transportadoras[cotizacion.transportadora].valorMinimoEnvio(detalles.peso_liquidar);
+  const valorRecaudoPermitiodo = Math.max(minimoRecaudo, valorRecaudo);
+    // TODO: falta añadir el valor mínimo de envío
   // ciclo para asegurar que el valor de recaudo insertado no sea mayor a lo que se le va a pagar al usuario
-  while (valorRecaudo > Math.round(detalles.recaudo - cotizacion.costoEnvio) && counter < 10) {
+  while (valorRecaudoPermitiodo > Math.round(detalles.recaudo - cotizacion.costoEnvio) && counter < 10) {
     detalles.recaudo = Math.round(valorRecaudo + cotizacion.costoEnvio);
     detalles.seguro =
       cotizacion.transportadora === COD_ENVIA ? detalles.seguro : detalles.recaudo;

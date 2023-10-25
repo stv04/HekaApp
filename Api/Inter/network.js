@@ -1,6 +1,7 @@
 const { calcularVolumen, calcularValorSeguro, validarPesoIngresado, costoDevolucion } = require("../../Utils/cotizacion");
 const { estandarizarFecha } = require("../../Utils/funciones");
-const { COD_INTERRAPIDISIMO, CONTRAENTREGA, CONVENCIONAL, transportadoras } = require("../../config/constantes");
+const { COD_INTERRAPIDISIMO, CONTRAENTREGA, CONVENCIONAL } = require("../../config/constantes");
+const transportadoras = require("../../config/transportadoras");
 const { pathCotizar } = require("./keys");
 const fetch = require("node-fetch");
 
@@ -66,7 +67,7 @@ exports.cotizarInter = async (consultaCotizacion) => {
     const precio = res[0].Precio;
 
     let sobreflete = 0;
-    if(consultaCotizacion.type != CONVENCIONAL) {
+    if(consultaCotizacion.tipo != CONVENCIONAL) {
         let servicioContraPago;
         if(valorSeguro > 50000) {
             servicioContraPago = valorSeguro * 0.03;
@@ -91,11 +92,8 @@ servicio de transporte Inter Rapidisimo en base a la solicitud de cotización
 (`solicitudCotizacion`), la respuesta de cotización (`respuestaCotizacion`) y los precios
 personalizados (`preciosPersonalizados`). */
 exports.calcularPreciosAdicionalesInterrapidisimo = (solicitudCotizacion, respuestaCotizacion, preciosPersonalizados) => {
-    let comision_heka = preciosPersonalizados.comision_heka;
-    let constante_heka = preciosPersonalizados.constante_pagoContraentrega;
-    let valor = solicitudCotizacion.valorSeguro;
-  
-    let sobrefleteHeka = Math.ceil(valor * ( comision_heka ) / 100) + constante_heka;
+    let {sobrefleteHeka} = respuestaCotizacion;
+    
     if(solicitudCotizacion.tipo !== CONVENCIONAL) sobrefleteHeka += 1000; 
     
     respuestaCotizacion.sobrefleteHeka = sobrefleteHeka;

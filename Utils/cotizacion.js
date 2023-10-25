@@ -1,4 +1,4 @@
-const { transportadoras } = require("../config/constantes");
+const transportadoras = require("../config/transportadoras");
 
 /* La función `exports.costoDevolucion` está calculando el costo de devolución de un envío en base a
 los parámetros `datosParametrizados` y `respuestaCotizacion`. */

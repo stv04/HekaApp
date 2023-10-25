@@ -1,5 +1,6 @@
 const { calcularVolumen, calcularValorSeguro, costoDevolucion, validarPesoIngresado } = require("../../Utils/cotizacion");
-const { COD_SERVIENTREGA, transportadoras, CONTRAENTREGA, CONVENCIONAL } = require("../../config/constantes");
+const { COD_SERVIENTREGA, CONVENCIONAL } = require("../../config/constantes");
+const transportadoras = require("../../config/transportadoras");
 const { getOne } = require("../Ciudades/network");
 const { UsuarioPrueba, Credenciales } = require("./keys");
 const fetch = require("node-fetch");
@@ -111,20 +112,15 @@ cotización), `respuestaCotizacion` (respuesta de cotización) y `preciosPersona
 personalizados). Que es IMPORTANTE usar una vez se concrete la petición de cotización*/
 exports.calcularPreciosAdicionalesServientrega = (solicitudCotizacion, respuestaCotizacion, preciosPersonalizados) => {
   const isConvencional = solicitudCotizacion.tipo === CONVENCIONAL;
+  const {sobrefleteHeka} = respuestaCotizacion;
 
   let sobreflete_min = 3000;
   let comision_transp = 1.5;
-  let comision_heka = preciosPersonalizados.comision_heka;
-  let constante_heka = preciosPersonalizados.constante_pagoContraentrega;
   let seguroMercancia = 0;
-  let valor = solicitudCotizacion.valorSeguro;
 
   if(isConvencional) {
     sobreflete_min = 350;
     comision_transp = 1;
-    comision_heka = 1;
-    constante_heka = preciosPersonalizados.constante_convencional;
-    valor = 0;
 
     seguroMercancia = respuestaCotizacion.sobreflete;
 
@@ -140,11 +136,9 @@ exports.calcularPreciosAdicionalesServientrega = (solicitudCotizacion, respuesta
     ? 0 // Al ser convencional el sobreflete pasa a ser cero
     : Math.ceil(Math.max(solicitudCotizacion.valorSeguro * comision_transp / 100, sobreflete_min));
 
-  let sobrefleteHeka = Math.ceil(valor * ( comision_heka ) / 100) + constante_heka;
   
   respuestaCotizacion.sobreflete = sobreflete;
   respuestaCotizacion.seguroMercancia = seguroMercancia;
-  respuestaCotizacion.sobrefleteHeka = sobrefleteHeka;
   respuestaCotizacion.costoEnvio = sobreflete + seguroMercancia + sobrefleteHeka + respuestaCotizacion.flete;
 
   //#region  LLENANDO DETALLES
