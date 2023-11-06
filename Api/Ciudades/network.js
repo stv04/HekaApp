@@ -57,4 +57,11 @@ async function getOne(dane_ciudad) {
     return d.data();
 }
 
-module.exports = {ciudadesCotizador, listaCompletaCiudades, update, getOne}
+async function cityStatistics(dane_ciudad) {
+    const coll = collection(db, "ciudades", dane_ciudad, "estadisticasEntrega");
+    const q = await getDocs(coll);
+
+    return q.docs.map(d => d.data());
+}
+
+module.exports = {ciudadesCotizador, listaCompletaCiudades, update, getOne, cityStatistics}
