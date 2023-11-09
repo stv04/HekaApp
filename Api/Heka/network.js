@@ -165,7 +165,7 @@ exports.modificarRespuestaCotizacion = (solicitudCotizacion, cotizaciones, param
             break;
         }
 
-        if(solicitudCotizacion.tipo === CONTRAENTREGA) {
+        if(solicitudCotizacion.tipo === CONTRAENTREGA || solicitudCotizacion.sumarCostoEnvio) {
             sumarCostoDeEnvio(solicitudCotizacion, c);
         }
         

@@ -10,7 +10,10 @@ const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.use(cors({
-    origin: ["http://localhost:6200", "https://hekaentrega.co", "https://flexii.co", "http://157.230.217.168:6200"]
+    origin: [
+        "http://localhost:6200", "https://hekaentrega.co", "https://flexii.co", "http://157.230.217.168:6200",
+        "https://*.hekaentrega.co", "https://*.flexii.co"
+    ]
 }));
 
 app.use("/Api", routers);

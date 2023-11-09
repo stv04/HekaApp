@@ -24,6 +24,7 @@ const SchCotizar = z.object({
     idDaneCiudadOrigen: z.string(), // id Código dane de la ciudad de origen
     idDaneCiudadDestino: z.string(), // id Código dane de la ciudad de destino
     tipo: z.enum([CONVENCIONAL, PAGO_CONTRAENTREGA, CONTRAENTREGA]), // Tipo de cotización (pago contraentrega, convencional, común)
+    sumarCostoEnvio: z.boolean() // Determina si en necesario sumar costo de envío sobre la cotización para apgo contraentrega
 });
 
 module.exports = {SchCotizar}

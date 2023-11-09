@@ -28,7 +28,6 @@ async function servicioCotizar(cotizacion) {
 
     const structure = maquetador.maqueta("COTIZADOR").fill(peticion);
 
-
     try {
         const response = await fetch(v15.endpoint, {
             method: "POST",
@@ -45,8 +44,8 @@ async function servicioCotizar(cotizacion) {
         })
     
         let xmlResponse = new DOMParser().parseFromString(response, "text/xml");
-        const resCotizar = xmlResponse.documentElement.getElementsByTagName("Cotizador_cotizarResult");
-        
+        const getSpecificXml = (dom) => xmlResponse.documentElement.getElementsByTagName(dom);
+        const resCotizar = getSpecificXml("Cotizador_cotizarResult");
         let responseJson = await xml2js.parseStringPromise(resCotizar, {
             explicitArray: false,
             ignoreAttrs: true
@@ -55,8 +54,19 @@ async function servicioCotizar(cotizacion) {
         if(responseJson) {
             responseJson = normalizarValoresNumericos(responseJson.Cotizador_cotizarResult);
         }
+
+        // obtener el método faultString
+        if(!responseJson) {
+            const stringFault = "SOAP-ENV:Fault";
+            fault = await xml2js.parseStringPromise(getSpecificXml(stringFault), {
+                explicitArray: false,
+                ignoreAttrs: true
+            });
+
+            responseJson = fault[stringFault];
+            responseJson.error = true;
+        }
     
-        console.log(response);
     
         return responseJson || {
             error: true,
