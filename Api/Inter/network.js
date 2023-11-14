@@ -41,6 +41,8 @@ exports.cotizarInter = async (consultaCotizacion) => {
         costoDevolucion: null // Se llena luego con el algoritmo de calculo de costo devolución
     }
 
+    const stringPagocontraentrega = consultaCotizacion.tipo === CONVENCIONAL ? "/FALSE" : "/TRUE";
+
     let res = await fetch(pathCotizar
         +7986+ "/"
         +consultaCotizacion.idDaneCiudadOrigen+"/"
@@ -48,6 +50,7 @@ exports.cotizarInter = async (consultaCotizacion) => {
         +peso+"/"
         +valorSeguro+"/1/" 
         + estandarizarFecha(new Date(), "DD-MM-YYYY")
+        + stringPagocontraentrega
     )
     .then(data => data.json())
     .catch(err => err);

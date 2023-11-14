@@ -8,4 +8,4 @@ exports.CredencialesEmpresa = INTERRAPIDISIMO.CredencialesEmpresa
 
 exports.Credenciales = INTERRAPIDISIMO.Credenciales
 
-exports.pathCotizar = "https://www3.interrapidisimo.com/ApiServInter/api/Cotizadorcliente/ResultadoListaCotizar/";
+exports.pathCotizar = "https://www3.interrapidisimo.com/ApiServInterQA/api/CotizadorCliente/ResultadoListaCotizarValidaContrapago/";
