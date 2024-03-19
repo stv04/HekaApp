@@ -165,6 +165,10 @@ exports.modificarRespuestaCotizacion = (solicitudCotizacion, cotizaciones, param
             break;
         }
 
+        if(solicitudCotizacion.fleteFlexiiAdicional) {
+            agregarComisionAdicionalFlexii(c);
+        }
+
         if(solicitudCotizacion.tipo === CONTRAENTREGA || solicitudCotizacion.sumarCostoEnvio) {
             sumarCostoDeEnvio(solicitudCotizacion, c);
         }
@@ -178,10 +182,10 @@ function agregarSobreFleteHeka(solicitudCotizacion, respuestaCotizacion, precios
     const sobreFlete = calcularSobrefleteHeka(solicitudCotizacion, respuestaCotizacion, preciosPersonalizados);
 
     respuestaCotizacion.sobrefleteHeka = sobreFlete;
-    respuestaCotizacion.detalles.comision_heka = sobreFlete; // Se llena con los detalles de la transportadora
-
+    respuestaCotizacion.detalles.comision_heka = sobreFlete; // Se llena con los detalles de la transportadora 
 }
 
+/** Realiza el cálculo del sobreflete de heka y retorna la cantidad que se va a cobrar en dicha comisión */
 function calcularSobrefleteHeka(solicitudCotizacion, respuestaCotizacion, preciosPersonalizados) {
     const isConvencional = solicitudCotizacion.tipo === CONVENCIONAL;
 
@@ -199,6 +203,33 @@ function calcularSobrefleteHeka(solicitudCotizacion, respuestaCotizacion, precio
     let sobrefleteHeka = Math.ceil(valor * ( comision_heka ) / 100) + constante_heka;
 
     return sobrefleteHeka;
+}
+
+/**Funcionalidad que se activa con la solicitud de cotizar por flexii para añadir la comisión impuesta por flexii */
+function agregarComisionAdicionalFlexii(respuestaCotizacion) {
+    const detalles = respuestaCotizacion.detalles;
+
+    console.log(detalles);
+
+    // comisión adicional viene dada por la probabilidad de cuantas guía se devuelven en promedio (de cada diez guía, se devuelven 3)
+    const comisionHekaAdicional = Math.round((detalles.costoDevolucion*3)/7);
+
+    // Se guarda la original (por si acaso)
+    detalles.comisionHekaOriginal = respuestaCotizacion.sobrefleteHeka;
+
+    // Se guarda el adicional qu eha sido agregado
+    detalles.comisionHekaAdicional = comisionHekaAdicional;
+
+    // Se añade el nuevo flete a la comisión de heka
+    respuestaCotizacion.sobrefleteHeka += comisionHekaAdicional;
+    respuestaCotizacion.detalles.comision_heka += comisionHekaAdicional; 
+
+    // Se añade la nueva comisión al costo del envío
+    respuestaCotizacion.costoEnvio += comisionHekaAdicional
+    respuestaCotizacion.detalles.total += comisionHekaAdicional
+
+    // Se actualiza la comisión Heka con sumándole el adicional
+    return comisionHekaAdicional;
 }
 
 /**

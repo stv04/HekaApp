@@ -24,7 +24,8 @@ const SchCotizar = z.object({
     idDaneCiudadOrigen: z.string(), // id Código dane de la ciudad de origen
     idDaneCiudadDestino: z.string(), // id Código dane de la ciudad de destino
     tipo: z.enum([CONVENCIONAL, PAGO_CONTRAENTREGA, CONTRAENTREGA]), // Tipo de cotización (pago contraentrega, convencional, común)
-    sumarCostoEnvio: z.boolean() // Determina si en necesario sumar costo de envío sobre la cotización para apgo contraentrega
+    sumarCostoEnvio: z.boolean(), // Determina si en necesario sumar costo de envío sobre la cotización para apgo contraentrega
+    fleteFlexiiAdicional: z.boolean() // Para activar el flete de flexii, que nos estaría indicando que la cotización es para usar la transportadora/estrategia flexii
 });
 
 module.exports = {SchCotizar}

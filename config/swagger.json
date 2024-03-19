@@ -332,6 +332,14 @@
 					},
 					"tipo": {
 						"type": "string"
+					},
+					"sumarCostoEnvio": {
+						"type": "boolean",
+						"default": false
+					},
+					"fleteFlexiiAdicional": {
+						"type": "boolean",
+						"default": false
 					}
 				}
 			},
