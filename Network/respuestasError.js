@@ -24,4 +24,14 @@ module.exports = {
         message: "La ciudad con la que se desea cotizar no existe",
         description: "El código dane que se intruduce no existe como Id en nuestra base de datos de ciudades."
     },
+    "C006": {
+        code: "C006",
+        message: "La ciudad destino no está disponible para la ciudad de origen ingresada.",
+        description: "La combinación entre ciudad de origen y destino no están disponibles en nuestrabase de datos."
+    },
+    "C007": {
+        code: "C007",
+        message: "Valores no disponibles para la cotización deseada.",
+        description: "Esto se debe a que entre los precios disponibles que se tiene para cotización, no se encuentra disponible alguno para el peso ingresado."
+    },
 }

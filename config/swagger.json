@@ -299,6 +299,93 @@
 					}
 				]
 			}
+		},
+		"/Api/Ciudades/Estadisticas/{dane}": {
+			"get": {
+				"tags": [
+					"Ciudades"
+				],
+				"summary": "Resumen nuevo método",
+				"description": "Descripción para la ruta /Api/Ciudades/Estadisticas/{dane} -- method: get",
+				"responses": {
+					"200": {
+						"description": "mis respuestas por defecto",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"code": {
+											"type": "integer"
+										},
+										"body": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "dane",
+						"in": "path",
+						"required": true
+					}
+				]
+			}
+		},
+		"/Api/Cotizador/": {
+			"post": {
+				"tags": [
+					"Cotizador"
+				],
+				"summary": "Cotizador heka",
+				"description": "Cotizador de heka que lo trabaja como una transportadora independiente",
+				"requestBody": {
+					"description": "Se agrega requestBody genérico porque el método ingresado es de tipo: post",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Cotizar"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Devuelve la respuesta de la cotización, junto con los detalles de lo que fue tomado en cuenta.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"body": {
+											"$ref": "#/components/schemas/CotizadorOut200"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"components": {
@@ -340,6 +427,26 @@
 					"fleteFlexiiAdicional": {
 						"type": "boolean",
 						"default": false
+					}
+				}
+			},
+			"CotizadorOut200": {
+				"type": "object",
+				"properties": {
+					"valorFlete": {
+						"type": "integer"
+					},
+					"sobreFlete": {
+						"type": "integer"
+					},
+					"seguroMercancia": {
+						"type": "integer"
+					},
+					"detalles": {
+						"$ref": "#/components/schemas/Cotizar",
+						"hola": {
+							"type": "integer"
+						}
 					}
 				}
 			},
