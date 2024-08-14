@@ -97,11 +97,16 @@ const agregarRuta = (rutaOriginal, metodo, tags) => {
     
 }
 
+const generarReferencia = (zodRef) => {
+    
+}
+
 const actualizarDocumentacion = () => {
     fs.writeFileSync("./config/swagger.json", JSON.stringify(swaggerDoc, null, "\t"));
 }
 
 module.exports = {
     agregarRuta,
-    actualizarDocumentacion
+    actualizarDocumentacion, 
+    generarReferencia
 }

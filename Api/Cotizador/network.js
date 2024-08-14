@@ -72,7 +72,7 @@ const configuracionBase = {
     pesoVolumetrico: 1 / 6000, // EL peso que se va a obtener en caso de que los volúmenes sean muy altos
     comisionMinima: 2500 // La comision qu ese establece como mínimo para las que no sean convencionales
 }
-const pesoVolumetrico = volumen => volumen * configuracionBase.pesoVolumetrico;
+const calculatePesoVolumetrico = volumen => volumen * configuracionBase.pesoVolumetrico;
 
 function obtenerValorFlete(peso) {
     const precioFlete = paquetePrecios.find(p => peso >= p.pesoMin && p.pesoMax >= peso);
@@ -87,7 +87,7 @@ function obtenerValorFlete(peso) {
 
 /* Maneja el proceso de obtención de cotizaciones por transportadoras y ciudad. */
 exports.cotizador = async (reqCotizacion) => {
-    const {alto, ancho,largo} = reqCotizacion;
+    const {alto, ancho, largo} = reqCotizacion;
     // Se busca primero la ciudad destino para analizar disponibilidad
     const ciudadDestino = await getOne(reqCotizacion.idDaneCiudadDestino);
 
@@ -97,14 +97,17 @@ exports.cotizador = async (reqCotizacion) => {
     const preciosDeCotizacion = ciudades[reqCotizacion.idDaneCiudadOrigen].preciosDestino[reqCotizacion.idDaneCiudadDestino];
     if(!preciosDeCotizacion) ThrowSpecifiedError(respuestasError.C006);
     
-    reqCotizacion.pesoVolumetrico = pesoVolumetrico(alto*ancho*largo);
-    reqCotizacion.pesoTomado = Math.ceil(Math.max(reqCotizacion.peso, reqCotizacion.pesoVolumetrico));
-    const valorComision = reqCotizacion.tipo !== CONVENCIONAL ? Math.max(Math.ceil(reqCotizacion.valorRecaudo * configuracionBase.porcentajeComision), configuracionBase.comisionMinima) : 0;
+    const pesoVolumetrico = calculatePesoVolumetrico(alto*ancho*largo);
+    const pesoTomado = Math.ceil(Math.max(reqCotizacion.peso, pesoVolumetrico));
+    const valorComision = reqCotizacion.tipo !== CONVENCIONAL ? 
+        Math.max(Math.ceil(reqCotizacion.valorRecaudo * configuracionBase.porcentajeComision), configuracionBase.comisionMinima) 
+        : 0;
 
     const response = {
-        valorFlete: obtenerValorFlete(reqCotizacion.pesoTomado),
+        valorFlete: obtenerValorFlete(pesoTomado),
         sobreFlete: valorComision,
         seguroMercancia: reqCotizacion.valorSeguro * configuracionBase.porcentajeseguroMercancia,
+        pesoTomado, pesoVolumetrico,
         detalles: reqCotizacion
     }
 

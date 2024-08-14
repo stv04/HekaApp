@@ -386,6 +386,53 @@
 					}
 				}
 			}
+		},
+		"/Api/Envios/Nuevo": {
+			"post": {
+				"tags": [
+					"Envios"
+				],
+				"summary": "Resumen nuevo método",
+				"description": "Descripción para la ruta /Api/Envios/Nuevo -- method: post",
+				"requestBody": {
+					"description": "Se agrega requestBody genérico porque el método ingresado es de tipo: post",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/NuevoEnvio"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "mis respuestas por defecto",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"code": {
+											"type": "integer"
+										},
+										"body": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"components": {
@@ -427,6 +474,98 @@
 					"fleteFlexiiAdicional": {
 						"type": "boolean",
 						"default": false
+					}
+				}
+			},
+			"NuevoEnvio": {
+				"type": "object",
+				"properties": {
+					"idDaneCiudadOrigen": {
+						"type": "string",
+						"default": "54001000"
+					},
+					"idDaneCiudadDestino": {
+						"type": "string",
+						"default": "11001000"
+					},
+					"tipo": {
+						"type": "string",
+						"default": "PAGO CONTRAENTREGA"
+					},
+					"dice_contener": {
+						"type": "string"
+					},
+					"centro_de_costo": {
+						"type": "string"
+					},
+					"id_user": {
+						"type": "string",
+						"nullable": true
+					},
+					"observaciones": {
+						"type": "string"
+					},
+					"valorSeguro": {
+						"type": "integer"
+					},
+					"valorRecaudo": {
+						"type": "integer"
+					},
+					"largo": {
+						"type": "integer",
+						"default": 1
+					},
+					"ancho": {
+						"type": "integer",
+						"default": 1
+					},
+					"alto": {
+						"type": "integer",
+						"default": 1
+					},
+					"peso": {
+						"type": "integer",
+						"default": 1
+					},
+					"info_origen": {
+						"type": "object",
+						"properties": {
+							"nombre_completo": {
+								"type": "string"
+							},
+							"direccion": {
+								"type": "string"
+							},
+							"celular": {
+								"type": "integer"
+							},
+							"numero_identificacion": {
+								"type": "string"
+							},
+							"tipo_identificacion": {
+								"type": "string"
+							}
+						}
+					},
+					"info_destino": {
+						"type": "object",
+						"properties": {
+							"nombre_completo": {
+								"type": "string"
+							},
+							"direccion": {
+								"type": "string"
+							},
+							"celular": {
+								"type": "integer"
+							},
+							"numero_identificacion": {
+								"type": "string"
+							},
+							"tipo_identificacion": {
+								"type": "string"
+							}
+						}
 					}
 				}
 			},
