@@ -1,7 +1,8 @@
 const { RSuccess, RError, RCatchError } = require("../../Network/responses");
-const { SchNuevoEnvio } = require("../../Schemas/envios");
+const { SchNuevoEnvio, SchEstado } = require("../../Schemas/envios");
+const { estandarizarFecha } = require("../../Utils/funciones");
 const { cotizador } = require("../Cotizador/network");
-const { idGuia, generarEnvio } = require("./network");
+const { idGuia, generarEnvio, guardarEstado, obtenerEstados, obtenerEnvio } = require("./network");
 
 
 /* Función asincrónica que maneja una solicitud para realizar una cotización. */
@@ -9,7 +10,6 @@ exports.crearEnvio = async (req, res) => {
     try {
         const guia = req.body;
 
-        
         // Se valida que el formato recibido sea el correcto
         const safePrse = SchNuevoEnvio.safeParse(guia);
 
@@ -18,6 +18,10 @@ exports.crearEnvio = async (req, res) => {
             return RError(req, res, safePrse.error.issues, 400);
         }
 
+        const fecha = new Date(); 
+        guia.fecha = fecha;
+        guia.timeline = fecha.getTime();
+        guia.fechaNatural = estandarizarFecha(fecha, "DD/MM/YYYY HH:mm");
         // Cotizamos antes de generar la guía, para validar información y costos
         const respuestaCotizacion = await cotizador(guia);
         delete respuestaCotizacion.detalles; // Se eliminan los detalles, ya que el cotizador responde a esto con la información que se le recibe
@@ -42,6 +46,62 @@ exports.crearEnvio = async (req, res) => {
 
     } catch (e) {
         console.log(e);
+        RCatchError(req, res, e);
+    }
+}
+
+
+exports.agregarSeguimiento = async (req, res) => {
+    try {
+        const seguimiento = req.body;
+        const { idEnvio } = req.params;
+
+        // Se valida que el formato recibido sea el correcto
+        const safePrse = SchEstado.safeParse(seguimiento);
+
+        // De otra forma retorna error error la librería "zod"
+        if(!safePrse.success) {
+            return RError(req, res, safePrse.error.issues, 400);
+        }
+
+        const fecha = new Date(); 
+        seguimiento.fecha = fecha;
+        seguimiento.timeline = fecha.getTime();
+        seguimiento.fechaNatural = estandarizarFecha(fecha, "DD/MM/YYYY HH:mm");
+
+
+        await guardarEstado(idEnvio, seguimiento);
+
+        const response = {
+            message: "Estado guardado correctamente"
+        }
+
+        // finalmente se devuelve la estructura de respuesta
+        RSuccess(req, res, response);
+
+    } catch (e) {
+        RCatchError(req, res, e);
+    }
+}
+
+exports.obtenerSeguimiento = async (req, res) => {
+
+    try {
+        const { idEnvio } = req.params;
+
+        const envio = await obtenerEnvio(idEnvio);
+
+        const basicInformation = {
+            numeroGuia: envio.numeroGuia,
+            fecha_creacion: envio.fechaNatural
+        }
+    
+        const estadosEnvio = await obtenerEstados(idEnvio);
+        basicInformation.seguimiento = estadosEnvio;
+
+        RSuccess(req, res, basicInformation);
+
+    } catch (e) {
         RCatchError(req, res, e);
     }
 }

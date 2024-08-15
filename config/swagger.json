@@ -433,6 +433,101 @@
 					}
 				}
 			}
+		},
+		"/Api/Envios/seguimiento/{idEnvio}": {
+			"post": {
+				"tags": [
+					"Envios"
+				],
+				"summary": "Resumen nuevo método",
+				"description": "Descripción para la ruta /Api/Envios/seguimiento/{idEnvio} -- method: post",
+				"requestBody": {
+					"description": "Se agrega requestBody genérico porque el método ingresado es de tipo: post",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/NuevoEstado"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "mis respuestas por defecto",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"code": {
+											"type": "integer"
+										},
+										"body": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "idEnvio",
+						"in": "path",
+						"required": true
+					}
+				]
+			},
+			"get": {
+				"tags": [
+					"Envios"
+				],
+				"summary": "Resumen nuevo método",
+				"description": "Descripción para la ruta /Api/Envios/seguimiento/{idEnvio} -- method: get",
+				"responses": {
+					"200": {
+						"description": "mis respuestas por defecto",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"error": {
+											"type": "boolean",
+											"example": false
+										},
+										"status": {
+											"type": "integer"
+										},
+										"code": {
+											"type": "integer"
+										},
+										"body": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"parameters": [
+					{
+						"name": "idEnvio",
+						"in": "path",
+						"required": true
+					}
+				]
+			}
 		}
 	},
 	"components": {
@@ -566,6 +661,31 @@
 								"type": "string"
 							}
 						}
+					}
+				}
+			},
+			"NuevoEstado": {
+				"type": "object",
+				"properties": {
+					"estado": {
+						"type": "string"
+					},
+					"descripcion": {
+						"type": "string"
+					},
+					"esNovedad": {
+						"type": "boolean"
+					},
+					"observaciones": {
+						"type": "string",
+						"nullable": true
+					},
+					"ubicacion": {
+						"type": "string",
+						"nullable": true
+					},
+					"reporter": {
+						"type": "string"
 					}
 				}
 			},

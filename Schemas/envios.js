@@ -57,7 +57,25 @@ const SchBasicDataEnvios = z.object({
 // Utiliza d einformación base lo qeu viene del cotizador, para que el mismo generador de envíos utilice el cotizador por prevención
 const SchNuevoEnvio = SchBasicDataEnvios.merge(SchCotizar);
 
+const SchEstado = z.object({
+    estado: z.string(),
+    descripcion: z.string(),
+    esNovedad: z.boolean(),
+    observaciones: z.string().nullable(),
+    ubicacion: z.string().nullable(),
+    reporter: z.string()
+});
+
 function unwrap(schema, parent) {
+    const dictionary = {
+        ZodNumber: "integer",
+        ZodString: "string",
+        ZodObject: "object",
+        ZodBoolean: "boolean",
+        ZodNullable: "nullable",
+        ZodDate: "date",
+    }
+
     Object.keys(schema.shape).forEach(key => {
         const ref = schema.shape[key]
         if(ref._def.typeName === 'ZodObject') {
@@ -67,13 +85,14 @@ function unwrap(schema, parent) {
         }
 
         parent[key] = {
-            type: ref._def.typeName.replace("Zod", "")
+            type: dictionary[ref._def.typeName]
         }
     })
 
+    return parent;
 }
 
 
 // generarReferencia(SchNuevoEnvio);
 
-module.exports = {SchNuevoEnvio}
+module.exports = {SchNuevoEnvio, SchEstado}

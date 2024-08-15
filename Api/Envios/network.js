@@ -1,4 +1,4 @@
-const { doc, getDoc, getDocs, runTransaction, collection, updateDoc, increment, setDoc, addDoc } = require("firebase/firestore");
+const { doc, getDoc, getDocs, runTransaction, collection, updateDoc, increment, setDoc, addDoc, query, orderBy } = require("firebase/firestore");
 const { db } = require("../../storage/firebase");
 const { ThrowError, ThrowSpecifiedError } = require("../../Network/responses");
 const { getOne } = require("../Ciudades/network");
@@ -8,6 +8,8 @@ const { cotizarInter, calcularPreciosAdicionalesInterrapidisimo } = require("../
 const { cotizarCoord, calcularPreciosAdicionalesCoordinadora } = require("../Coordinadora/network");
 const transportadoras = require("../../config/transportadoras");
 const respuestasError = require("../../Network/respuestasError");
+
+const collectionEnvios = collection(db, "envios");
 
 exports.idGuia = async () => {
     // Obtenemos el id d ela información que tenemos actualmente
@@ -41,37 +43,66 @@ exports.idGuia = async () => {
 
 exports.generarEnvio = async (guia) => {
     try {
-        const dataCollection = collection(db, "envios")
+        const dataCollection = collectionEnvios;
     
-        await addDoc(dataCollection, guia);
+        const envio = await addDoc(dataCollection, guia);
+        
+        return envio.id;
 
-    } catch (e) {-
+    } catch (e) {
         ThrowError(e.message, 500);
     }
 }
 
-/* Maneja el proceso de obtención de cotizaciones por transportadoras y ciudad. */
-exports.cotizador = async (reqCotizacion) => {
-    const {alto, ancho,largo} = reqCotizacion;
-    // Se busca primero la ciudad destino para analizar disponibilidad
-    const ciudadDestino = await getOne(reqCotizacion.idDaneCiudadDestino);
-
-    // si se encuentra bloqueada, retorna error porque significa que para la ciudad proporcionada no hay disponibilidad
-    if(ciudadDestino.bloqueada) ThrowSpecifiedError(respuestasError.C001);
-
-    const preciosDeCotizacion = ciudades[reqCotizacion.idDaneCiudadOrigen].preciosDestino[reqCotizacion.idDaneCiudadDestino];
-    if(!preciosDeCotizacion) ThrowSpecifiedError(respuestasError.C006);
+exports.obtenerEnvio = async (idEnvio) => {
+    try {
+        const dataCollection = doc(collectionEnvios, idEnvio);
     
-    reqCotizacion.pesoVolumetrico = pesoVolumetrico(alto*ancho*largo);
-    reqCotizacion.pesoTomado = Math.ceil(Math.max(reqCotizacion.peso, reqCotizacion.pesoVolumetrico));
-    const valorComision = reqCotizacion.tipo !== CONVENCIONAL ? Math.max(Math.ceil(reqCotizacion.valorRecaudo * configuracionBase.porcentajeComision), configuracionBase.comisionMinima) : 0;
+        const envio = await getDoc(dataCollection);
+        
+        return envio.data();
 
-    const response = {
-        valorFlete: obtenerValorFlete(reqCotizacion.pesoTomado),
-        sobreFlete: valorComision,
-        seguroMercancia: reqCotizacion.valorSeguro * configuracionBase.porcentajeseguroMercancia,
-        detalles: reqCotizacion
+    } catch (e) {
+        ThrowError(e.message, 500);
     }
+}
 
-    return response;
+exports.obtenerEnvios = async () => {
+    try {
+        const dataCollection = collectionEnvios;
+    
+        const q = query(dataCollection, orderBy("timeline", "desc"));
+        const envios = await getDocs(q);
+        
+        return envios.docs.map(d => d.data());
+
+    } catch (e) {
+        ThrowError(e.message, 500);
+    }
+}
+
+exports.guardarEstado = async (idEnvio, estado) => {
+    try {
+        const dataCollection = collection(collectionEnvios, idEnvio, "estados");
+    
+        const seguimiento = await addDoc(dataCollection, estado);
+
+        return seguimiento.id;
+    } catch (e) {
+        ThrowError(e.message, 500);
+    }
+}
+
+exports.obtenerEstados = async (idEnvio) => {
+    try {
+        const dataCollection = collection(collectionEnvios, idEnvio, "estados");
+    
+        const q = query(dataCollection, orderBy("timeline", "desc"));
+        const envios = await getDocs(q);
+        
+        return envios.docs.map(d => d.data());
+
+    } catch (e) {
+        ThrowError(e.message, 500);
+    }
 }
