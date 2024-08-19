@@ -1,4 +1,4 @@
-const { doc, getDoc, getDocs, runTransaction, collection, updateDoc, increment, setDoc, addDoc, query, orderBy } = require("firebase/firestore");
+const { doc, getDoc, getDocs, runTransaction, collection, updateDoc, increment, setDoc, addDoc, query, orderBy, where } = require("firebase/firestore");
 const { db } = require("../../storage/firebase");
 const { ThrowError, ThrowSpecifiedError } = require("../../Network/responses");
 const { getOne } = require("../Ciudades/network");
@@ -75,6 +75,20 @@ exports.obtenerEnvios = async () => {
         const envios = await getDocs(q);
         
         return envios.docs.map(d => d.data());
+
+    } catch (e) {
+        ThrowError(e.message, 500);
+    }
+}
+
+exports.obtenerEnvioByNumeroGuia = async (numeroGuia) => {
+    try {
+        const dataCollection = collectionEnvios;
+    
+        const q = query(dataCollection, where("numeroGuia", "==", numeroGuia));
+        const envios = await getDocs(q);
+        
+        return envios.docs[0].data();
 
     } catch (e) {
         ThrowError(e.message, 500);
