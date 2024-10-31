@@ -10,11 +10,12 @@ const transportadoras = require("../../config/transportadoras");
 const respuestasError = require("../../Network/respuestasError");
 
 const collectionEnvios = collection(db, "envios");
-
+let universalId = null;
 exports.idGuia = async () => {
     // Obtenemos el id d ela información que tenemos actualmente
     try {
 
+        
         const incrementalDoc = doc(db, "infoHeka", "heka_id");
         const collectionId = collection(incrementalDoc, "incrementalEnvios");
         const idList = await getDocs(collectionId);
@@ -24,6 +25,14 @@ exports.idGuia = async () => {
         for (const doc of idList.docs) {
             count += doc.get("count");
         }
+        
+        if(universalId && !isNaN(universalId)) {
+            universalId++;
+        } else {
+            universalId = count;
+        }
+
+        const realCount = universalId ?? count;
 
         const incrementaId = Math.floor(Math.random() * counters);
         const incrementRef = idList.docs[incrementaId];
@@ -35,7 +44,7 @@ exports.idGuia = async () => {
             idEnvios: count
         });
 
-        return count.toString().padStart(8, "10000000");
+        return realCount.toString().padStart(8, "10000000");
     } catch(e) {
         ThrowError(e.message, 500);
     }

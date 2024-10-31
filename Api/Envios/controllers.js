@@ -55,6 +55,8 @@ exports.agregarSeguimiento = async (req, res) => {
     try {
         const seguimiento = req.body;
         const { idEnvio } = req.params;
+        // const apiPatchEstado = "http://localhost:6200/procesos/actualizarEstado/";
+        const apiPatchEstado = "https:admin.hekaentrega.co/procesos/actualizarEstado/";
 
         // Se valida que el formato recibido sea el correcto
         const safePrse = SchEstado.safeParse(seguimiento);
@@ -69,12 +71,27 @@ exports.agregarSeguimiento = async (req, res) => {
         seguimiento.timeline = fecha.getTime();
         seguimiento.fechaNatural = estandarizarFecha(fecha, "DD/MM/YYYY HH:mm");
 
+        infoGuia = await obtenerEnvio(idEnvio);
+
 
         await guardarEstado(idEnvio, seguimiento);
 
         const response = {
             message: "Estado guardado correctamente"
         }
+
+        await fetch(apiPatchEstado + infoGuia.numeroGuia, {
+            method: "POST",
+            headers: {
+                "Content-type": "Application/json"
+            },
+            body: JSON.stringify(seguimiento)
+        })
+        .then(d => d.json())
+        .then(d => console.log(d))
+        .catch(e => {
+            console.log("Error al actualizar con plataforma: " + e.message);
+        });
 
         // finalmente se devuelve la estructura de respuesta
         RSuccess(req, res, response);

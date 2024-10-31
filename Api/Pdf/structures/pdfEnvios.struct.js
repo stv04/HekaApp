@@ -1,5 +1,5 @@
 module.exports = guia => {
-    const {tipo, numeroGuia, info_destino, info_origen, valorRecaudo} = guia;
+    const {id, tipo, numeroGuia, info_destino, info_origen, valorRecaudo} = guia;
 
     return {
         pageSize: 'A5',
@@ -27,7 +27,7 @@ module.exports = guia => {
                             ]
                         }, {
                             rowSpan: 2,
-                            qr: numeroGuia
+                            qr: `https://admin.hekaentrega.co/plataforma2.html?id=${id}#flexii_guia`
                         }],
                         [{
                             text: [
