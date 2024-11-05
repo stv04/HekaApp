@@ -34,4 +34,9 @@ module.exports = {
         message: "Valores no disponibles para la cotización deseada.",
         description: "Esto se debe a que entre los precios disponibles que se tiene para cotización, no se encuentra disponible alguno para el peso ingresado."
     },
+    "C008": {
+        code: "C008",
+        message: "La ciudadd desde dónde se requiere enviar no se encuentra disponible.",
+        description: "La ciudad de origen que se quiere validar no existe en la base de datos."
+    },
 }

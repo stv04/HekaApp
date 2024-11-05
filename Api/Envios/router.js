@@ -5,7 +5,7 @@ const { obtenerEstados } = require("./network");
 const router = express.Router();
 
 router.post("/Nuevo", crearEnvio);
-router.post("/seguimiento/:idEnvio", agregarSeguimiento);
-router.get("/seguimiento/:idEnvio", obtenerSeguimiento);
+router.post("/Seguimiento/:idEnvio", agregarSeguimiento);
+router.get("/Seguimiento/:idEnvio", obtenerSeguimiento);
 
 module.exports = router;

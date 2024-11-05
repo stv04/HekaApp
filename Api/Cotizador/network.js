@@ -94,7 +94,10 @@ exports.cotizador = async (reqCotizacion) => {
     // si se encuentra bloqueada, retorna error porque significa que para la ciudad proporcionada no hay disponibilidad
     if(ciudadDestino.bloqueada) ThrowSpecifiedError(respuestasError.C001);
 
-    const preciosDeCotizacion = ciudades[reqCotizacion.idDaneCiudadOrigen].preciosDestino[reqCotizacion.idDaneCiudadDestino];
+    const configCiudadOrigen = ciudades[reqCotizacion.idDaneCiudadOrigen];
+    if(!configCiudadOrigen) ThrowSpecifiedError(respuestasError.C008);
+
+    const preciosDeCotizacion = configCiudadOrigen.preciosDestino[reqCotizacion.idDaneCiudadDestino];
     if(!preciosDeCotizacion) ThrowSpecifiedError(respuestasError.C006);
     
     const pesoVolumetrico = calculatePesoVolumetrico(alto*ancho*largo);
