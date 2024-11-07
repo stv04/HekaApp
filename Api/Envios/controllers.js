@@ -1,3 +1,4 @@
+const fetch = require("node-fetch");
 const { RSuccess, RError, RCatchError } = require("../../Network/responses");
 const { SchNuevoEnvio, SchEstado } = require("../../Schemas/envios");
 const { estandarizarFecha } = require("../../Utils/funciones");

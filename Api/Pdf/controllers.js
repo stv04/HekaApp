@@ -6,6 +6,7 @@ const { obtenerEnvioByNumeroGuia, obtenerEnvio } = require("../Envios/network");
 const pdfEnviosStruct = require("./structures/pdfEnvios.struct");
 const pdfRelacionStruct = require("./structures/pdfRelacion.struct");
 const { getOne } = require("../Ciudades/network");
+const { getBase64Image } = require("./network");
 
 
 /* Función asincrónica que maneja una solicitud para realizar una cotización. */
@@ -49,12 +50,13 @@ exports.pdfRelacionEnvio = async (req, res) => {
             envios.push(envio);
         }
 
-        const infoCiudadOrigen = await getOne(envios[0].idDaneCiudadOrigen);
-        const nombreCiudad = `${infoCiudadOrigen.ciudad} (${infoCiudadOrigen.departamento})`;
+        const fondoPdf = getBase64Image("Group.png");
+        const logoHeka = getBase64Image("Logo.png");
 
         const aditionalData = {
             ...req.body,
-            ciudadOrigen: nombreCiudad
+            fondo: fondoPdf,
+            logoHeka: logoHeka
         };
                 
         const dd = pdfRelacionStruct(envios, aditionalData);
