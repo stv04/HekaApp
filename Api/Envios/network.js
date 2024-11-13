@@ -96,8 +96,12 @@ exports.obtenerEnvioByNumeroGuia = async (numeroGuia) => {
     
         const q = query(dataCollection, where("numeroGuia", "==", numeroGuia));
         const envios = await getDocs(q);
+
+        const firstDoc = envios.docs[0];
+        const data = firstDoc.data();
+        data.id = firstDoc.id;
         
-        return envios.docs[0].data();
+        return data;
 
     } catch (e) {
         ThrowError(e.message, 500);

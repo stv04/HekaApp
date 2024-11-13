@@ -27,7 +27,7 @@ module.exports = guia => {
                             ]
                         }, {
                             rowSpan: 2,
-                            qr: `https://admin.hekaentrega.co/plataforma2.html?id=${id}#flexii_guia`
+                            qr: `https://admin.hekaentrega.co/plataforma2.html?id=${id}#flexii_guia_recept`
                         }],
                         [{
                             text: [
