@@ -36,7 +36,7 @@ module.exports = {
     },
     "C008": {
         code: "C008",
-        message: "La ciudadd desde dónde se requiere enviar no se encuentra disponible.",
+        message: "La ciudad desde dónde se requiere enviar no se encuentra disponible.",
         description: "La ciudad de origen que se quiere validar no existe en la base de datos."
     },
 }
