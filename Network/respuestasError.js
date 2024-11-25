@@ -26,8 +26,8 @@ module.exports = {
     },
     "C006": {
         code: "C006",
-        message: "La ciudad destino no está disponible para la ciudad de origen ingresada.",
-        description: "La combinación entre ciudad de origen y destino no están disponibles en nuestrabase de datos."
+        message: "La ciudad destino no está disponible para recepción de paquetes.",
+        description: "La ciudad desde donde se plantea cotizar, no tiene el tipo de validez adecuado para recibir paquetes."
     },
     "C007": {
         code: "C007",
@@ -36,7 +36,7 @@ module.exports = {
     },
     "C008": {
         code: "C008",
-        message: "La ciudad desde dónde se requiere enviar no se encuentra disponible.",
-        description: "La ciudad de origen que se quiere validar no existe en la base de datos."
+        message: "La ciudad desde dónde se requiere enviar no se encuentra disponible para envío.",
+        description: "La ciudad de origen que se quiere validar no existe en la base de datos o no posee el tipo de validez adecuado para enviar paquetes."
     },
 }

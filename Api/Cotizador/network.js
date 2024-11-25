@@ -34,36 +34,69 @@ const cotizacionesDisponibLes = {
     [COD_COORDINADORA]:cotizarCoord
 }
 
+const autorizacionCiudad = {
+    ORIGEN: "ORIGEN",
+    DESTINO: "DESTINO",
+    MIXTO: "MIXTO"
+}
+
 const ciudades = {
     54001000: {
         dane: 54001000,
         ciudad: "CUCUTA",
         departamento: "NORTE DE SANTANDER",
-        preciosDestino: {
-            11001000: {
-                dane: 11001000,
-                ciudad: "BOGOTA",
-                departamento: "CUNDINAMARCA"
-            }
-        }
+        tipoValidez: autorizacionCiudad.ORIGEN
+    },
+    11001000: {
+        dane: 11001000,
+        ciudad: "BOGOTA",
+        departamento: "CUNDINAMARCA",
+        tipoValidez: autorizacionCiudad.MIXTO
     }
+}
+
+const tiposDeCotizacion = {
+    URBAN: "URBAN",
+    DEPARTAMENTAL: "DEPARTAMENTAL",
+    NACIONAL: "NACIONAL"
 }
 
 const paquetePrecios = [{
     pesoMin: 1,
     pesoMax: 5,
     precioBase: 10150,
-    precioKgAdicional: 4200
+    precioKgAdicional: 4200,
+    tipo: tiposDeCotizacion.NACIONAL
 }, {
     pesoMin: 6,
     pesoMax: 29,
     precioBase: 48900,
-    precioKgAdicional: 0
+    precioKgAdicional: 0,
+    tipo: tiposDeCotizacion.NACIONAL
 }, {
     pesoMin: 30,
     pesoMax: 60,
     precioBase: 48900,
-    precioKgAdicional: 1630
+    precioKgAdicional: 4200,
+    tipo: tiposDeCotizacion.NACIONAL
+}, {
+    pesoMin: 1,
+    pesoMax: 5,
+    precioBase: 4900,
+    precioKgAdicional: 2100,
+    tipo: tiposDeCotizacion.URBAN
+}, {
+    pesoMin: 6,
+    pesoMax: 29,
+    precioBase: 18900,
+    precioKgAdicional: 0,
+    tipo: tiposDeCotizacion.URBAN
+}, {
+    pesoMin: 30,
+    pesoMax: 60,
+    precioBase: 18900,
+    precioKgAdicional: 2100,
+    tipo: tiposDeCotizacion.URBAN
 }];
 
 const configuracionBase = {
@@ -74,8 +107,18 @@ const configuracionBase = {
 }
 const calculatePesoVolumetrico = volumen => volumen * configuracionBase.pesoVolumetrico;
 
-function obtenerValorFlete(peso) {
-    const precioFlete = paquetePrecios.find(p => peso >= p.pesoMin && p.pesoMax >= peso);
+function validarTipoCotizacion(ciudadA, ciudadB) {
+    if(ciudadA.dane === ciudadB.dane) {
+        return tiposDeCotizacion.URBAN;
+    } else if (ciudadA.dane !== ciudadB.dane && ciudadA.departamento === ciudadB.departamento) {
+        return tiposDeCotizacion.DEPARTAMENTAL;
+    } else {
+        return tiposDeCotizacion.NACIONAL;
+    }
+}
+
+function obtenerValorFlete(peso, tipo) {
+    const precioFlete = paquetePrecios.find(p => peso >= p.pesoMin && p.pesoMax >= peso && p.tipo === tipo);
 
     if(!precioFlete) ThrowSpecifiedError(respuestasError.C007);
 
@@ -95,10 +138,16 @@ exports.cotizador = async (reqCotizacion) => {
     if(ciudadDestino.bloqueada) ThrowSpecifiedError(respuestasError.C001);
 
     const configCiudadOrigen = ciudades[reqCotizacion.idDaneCiudadOrigen];
-    if(!configCiudadOrigen) ThrowSpecifiedError(respuestasError.C008);
+    if(
+        !configCiudadOrigen 
+        || ![autorizacionCiudad.ORIGEN, autorizacionCiudad.MIXTO].includes(configCiudadOrigen.tipoValidez)
+    ) ThrowSpecifiedError(respuestasError.C008);
 
-    const preciosDeCotizacion = configCiudadOrigen.preciosDestino[reqCotizacion.idDaneCiudadDestino];
-    if(!preciosDeCotizacion) ThrowSpecifiedError(respuestasError.C006);
+    const configCiudadDestino = ciudades[reqCotizacion.idDaneCiudadDestino];
+    if(
+        !configCiudadDestino 
+        || ![autorizacionCiudad.DESTINO, autorizacionCiudad.MIXTO].includes(configCiudadDestino.tipoValidez)
+    ) ThrowSpecifiedError(respuestasError.C006);
     
     const pesoVolumetrico = calculatePesoVolumetrico(alto*ancho*largo);
     const pesoTomado = Math.ceil(Math.max(reqCotizacion.peso, pesoVolumetrico));
@@ -106,8 +155,10 @@ exports.cotizador = async (reqCotizacion) => {
         Math.max(Math.ceil(reqCotizacion.valorRecaudo * configuracionBase.porcentajeComision), configuracionBase.comisionMinima) 
         : 0;
 
+    const tipoDeCotizacion = validarTipoCotizacion(configCiudadOrigen, configCiudadDestino);
+
     const response = {
-        valorFlete: obtenerValorFlete(pesoTomado),
+        valorFlete: obtenerValorFlete(pesoTomado, tipoDeCotizacion),
         sobreFlete: valorComision,
         seguroMercancia: reqCotizacion.valorSeguro * configuracionBase.porcentajeseguroMercancia,
         pesoTomado, pesoVolumetrico,

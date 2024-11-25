@@ -38,6 +38,6 @@ exports.cotizar = async (req, res) => {
 
     } catch (e) {
         console.log(e);
-        RError(req, res, e.message, e.statusCode);
+        RCatchError(req, res, e);
     }
 }
