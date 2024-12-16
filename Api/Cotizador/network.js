@@ -45,7 +45,7 @@ const ciudades = {
         dane: 54001000,
         ciudad: "CUCUTA",
         departamento: "NORTE DE SANTANDER",
-        tipoValidez: autorizacionCiudad.ORIGEN
+        tipoValidez: null // Al ser nulo, se trata de un destino inactivo tanto para recibir como para envíar
     },
     11001000: {
         dane: 11001000,
@@ -81,21 +81,9 @@ const paquetePrecios = [{
     tipo: tiposDeCotizacion.NACIONAL
 }, {
     pesoMin: 1,
-    pesoMax: 5,
-    precioBase: 4900,
-    precioKgAdicional: 2100,
-    tipo: tiposDeCotizacion.URBAN
-}, {
-    pesoMin: 6,
-    pesoMax: 29,
-    precioBase: 18900,
+    pesoMax: 3,
+    precioBase: 8600,
     precioKgAdicional: 0,
-    tipo: tiposDeCotizacion.URBAN
-}, {
-    pesoMin: 30,
-    pesoMax: 60,
-    precioBase: 18900,
-    precioKgAdicional: 2100,
     tipo: tiposDeCotizacion.URBAN
 }];
 

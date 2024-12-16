@@ -1,9 +1,19 @@
 module.exports = guia => {
-    const {id, tipo, numeroGuia, info_destino, info_origen, valorRecaudo} = guia;
+    const {id, tipo, numeroGuia, info_destino, info_origen, valorRecaudoText, fondo, logoHeka} = guia;
 
     return {
         pageSize: 'A5',
         pageOrientation: 'landscape',
+        footer: {
+            text: 'atencion@hekaentrega.co', alignment: 'center' 
+        },
+        background: {
+            image: "fondo",
+            alignment: "center",
+            height: 280,
+            width: 280,
+            margin: [0, 70]
+        },
         content: [
             {
                 table: {
@@ -17,7 +27,24 @@ module.exports = guia => {
                             color: "#fff",
                             bold: true
                         }, {}],
-                        ["Guía", numeroGuia],
+                        [
+                            {
+                                text: [
+                                    { text: "Guía: ", bold: true },
+                                    numeroGuia
+                                ],
+                                fontSize: 15,
+                                alignment: "center",
+                                marginTop: 4
+                            },
+                            {
+                                image: "logoHeka",
+                                height: 20,
+                                width: 80,
+                                alignment: "center",
+                                margin: [0, 4]
+                            }
+                        ],
                         [{
                             text: [
                                 { text: 'DE: ', bold: true },
@@ -41,9 +68,8 @@ module.exports = guia => {
                             colSpan: 2,
                             text: [
                                 { text: 'Observaciones cliente:\n', bold: true },
-                                `Doc. si Valor a recaudar: en TARJETA o Efectivo ${valorRecaudo}\n\n`,
-                                { text: 'Ref: ', bold: true },
-                                'My reference'
+                                `Doc. si Valor a recaudar: en QR o Efectivo\t`,
+                                { text: `${valorRecaudoText}\n\n`, bold: true, fontSize: 20 }
                             ]
                         }]
                     ]
@@ -72,7 +98,10 @@ module.exports = guia => {
         },
         defaultStyle: {
             alignment: 'justify'
+        },
+        images: {
+            fondo: fondo,
+            logoHeka: logoHeka
         }
-
     }
 }

@@ -7,6 +7,7 @@ const pdfEnviosStruct = require("./structures/pdfEnvios.struct");
 const pdfRelacionStruct = require("./structures/pdfRelacion.struct");
 const { getOne } = require("../Ciudades/network");
 const { getBase64Image } = require("./network");
+const { currencyFormatter } = require("../../Utils/funciones");
 
 
 /* Función asincrónica que maneja una solicitud para realizar una cotización. */
@@ -15,6 +16,11 @@ exports.pdfGuia = async (req, res) => {
         const { numeroGuia } = req.params;
                 
         const guia = await obtenerEnvioByNumeroGuia(numeroGuia);
+
+        guia.fondo = getBase64Image("Group.png");
+        guia.logoHeka = getBase64Image("Logo.png");
+        guia.valorRecaudoText = currencyFormatter(guia.valorRecaudo);
+
         const dd = pdfEnviosStruct(guia);
 
         const printer = new PdfPrinter(fontDescriptors);
@@ -28,6 +34,7 @@ exports.pdfGuia = async (req, res) => {
 
         doc.on("end", () => {
             result = Buffer.concat(chunks);
+            // res.type('application/pdf').send(result);
             RSuccess(req, res, result.toString("base64"));
         });
         

@@ -79,3 +79,14 @@ exports.normalizarValoresNumericos = (valores) => {
 
   return valores
 }
+
+exports.currencyFormatter = (value) => {
+  const locale = new Intl.Locale("es-CO");
+  const formatter = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0
+  });
+
+  return formatter.format(value);
+}

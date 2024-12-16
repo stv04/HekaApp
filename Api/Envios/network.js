@@ -44,7 +44,7 @@ exports.idGuia = async () => {
             idEnvios: count
         });
 
-        return realCount.toString().padStart(8, "10000000");
+        return realCount.toString().padStart(10, "1000000000");
     } catch(e) {
         ThrowError(e.message, 500);
     }
