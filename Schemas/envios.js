@@ -42,7 +42,7 @@ const SchBasicDataEnvios = z.object({
         nombre_completo: z.string(),
         direccion: z.string(),
         celular: z.number(),
-        numero_identificacion: z.string(),
+        numero_identificacion: z.string().nullable(),
         tipo_identificacion: z.string().nullable(),
     }),
     info_cotizacion: z.object({
