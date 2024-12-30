@@ -88,10 +88,10 @@ const paquetePrecios = [{
 }];
 
 const configuracionBase = {
-    porcentajeComision: .03, // Porcentaje en base al valor de recado
-    porcentajeseguroMercancia: .02, // Porcentaje en base al valor declarado del producto
+    porcentajeComision: 0, // Porcentaje en base al valor de recado
+    porcentajeseguroMercancia: 0, // Porcentaje en base al valor declarado del producto
     pesoVolumetrico: 1 / 6000, // EL peso que se va a obtener en caso de que los volúmenes sean muy altos
-    comisionMinima: 2500 // La comision qu ese establece como mínimo para las que no sean convencionales
+    comisionMinima: 0 // La comision qu ese establece como mínimo para las que no sean convencionales
 }
 const calculatePesoVolumetrico = volumen => volumen * configuracionBase.pesoVolumetrico;
 
