@@ -82,14 +82,14 @@ const paquetePrecios = [{
 }, {
     pesoMin: 1,
     pesoMax: 3,
-    precioBase: 8600,
+    precioBase: 6300,
     precioKgAdicional: 0,
     tipo: tiposDeCotizacion.URBAN
 }];
 
 const configuracionBase = {
-    porcentajeComision: 0, // Porcentaje en base al valor de recado
-    porcentajeseguroMercancia: 0, // Porcentaje en base al valor declarado del producto
+    porcentajeComision: .015, // Porcentaje en base al valor de recaudo (expresado en decimales)
+    porcentajeseguroMercancia: .01, // Porcentaje en base al valor declarado del producto (expresado en decimales)
     pesoVolumetrico: 1 / 6000, // EL peso que se va a obtener en caso de que los volúmenes sean muy altos
     comisionMinima: 0 // La comision qu ese establece como mínimo para las que no sean convencionales
 }
