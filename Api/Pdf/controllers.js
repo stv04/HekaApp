@@ -21,6 +21,13 @@ exports.pdfGuia = async (req, res) => {
         guia.logoHeka = getBase64Image("Logo.png");
         guia.valorRecaudoText = currencyFormatter(guia.valorRecaudo);
 
+        const ciudadOrigen = await getOne(guia.idDaneCiudadOrigen);
+        const ciudadDestino = await getOne(guia.idDaneCiudadDestino);
+        guia.aditionalData = {
+            nombreCiudadOrigen: ciudadOrigen.nombre ?? "",
+            nombreCiudadDestino: ciudadDestino.nombre ?? ""
+        }
+
         const dd = pdfEnviosStruct(guia);
 
         const printer = new PdfPrinter(fontDescriptors);

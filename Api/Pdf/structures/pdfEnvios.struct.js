@@ -1,5 +1,5 @@
 module.exports = guia => {
-    const {id, tipo, numeroGuia, info_destino, info_origen, valorRecaudoText, fondo, logoHeka} = guia;
+    const {id, tipo, numeroGuia, info_destino, info_origen, valorRecaudoText, fondo, logoHeka, aditionalData} = guia;
 
     return {
         pageSize: 'A5',
@@ -50,7 +50,7 @@ module.exports = guia => {
                                 { text: 'DE: ', bold: true },
                                 info_origen.nombre_completo + '\n',
                                 info_origen.direccion + '\n\n',
-                                `BOGOTÁ(CUNDINAMARCA), TEL: 1231231231`
+                                `${aditionalData.nombreCiudadOrigen}, TEL: ${info_origen.celular}`
                             ]
                         }, {
                             rowSpan: 2,
@@ -61,7 +61,7 @@ module.exports = guia => {
                                 { text: 'PARA: ', bold: true },
                                 info_destino.nombre_completo + '\n',
                                 info_destino.direccion + '\n\n',
-                                'CUCUTA(NORTE DE SANTANDER), TEL: 1231231231'
+                                `${aditionalData.nombreCiudadDestino}, TEL: ${info_destino.celular}`
                             ]
                         }],
                         [{

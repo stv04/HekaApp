@@ -52,7 +52,7 @@ async function getOne(dane_ciudad) {
     const coll = doc(db, "ciudades", dane_ciudad);
     const d = await getDoc(coll);
 
-    if(!d.exists) TrowError("No se consigue la ciudad que estás buscando");
+    if(!d.exists) TrowError("No se consigue la ciudad que estás buscando: " + dane_ciudad);
 
     return d.data();
 }
