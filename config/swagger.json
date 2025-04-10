@@ -361,6 +361,13 @@
 					},
 					"required": true
 				},
+				"parameters": [
+					{
+						"name": "idFirebase",
+						"in": "query",
+						"required": false
+					}
+				],
 				"responses": {
 					"200": {
 						"description": "Devuelve la respuesta de la cotización, junto con los detalles de lo que fue tomado en cuenta.",

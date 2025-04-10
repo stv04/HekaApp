@@ -1,4 +1,4 @@
-const { doc, getDoc } = require("firebase/firestore");
+const { doc, getDoc, collection, query, where, getDocs } = require("firebase/firestore");
 const { db } = require("../../storage/firebase");
 const { ThrowError, ThrowSpecifiedError } = require("../../Network/responses");
 const { getOne } = require("../Ciudades/network");
@@ -8,24 +8,7 @@ const { cotizarInter, calcularPreciosAdicionalesInterrapidisimo } = require("../
 const { cotizarCoord, calcularPreciosAdicionalesCoordinadora } = require("../Coordinadora/network");
 const transportadoras = require("../../config/transportadoras");
 const respuestasError = require("../../Network/respuestasError");
-
-const datos_personalizados = {
-    costo_zonal1: 8650,
-    costo_zonal2: 13300,
-    costo_zonal3: 2800,
-    costo_nacional1: 11500,
-    costo_nacional2: 20400,
-    costo_nacional3: 3400,
-    costo_especial1: 25550,
-    costo_especial2: 39000,
-    costo_especial3: 6300,
-    comision_servi: 3.1,
-    comision_heka: 1.5,
-    constante_convencional: 800,
-    constante_pagoContraentrega: 1700,
-    comision_punto: 10,
-    saldo: 0
-};
+const paquetePrecios = require("../../Network/genericPrices");
 
 // objeto base que importa todas la funciones para cotizar por trasportadora 
 const cotizacionesDisponibLes = {
@@ -108,7 +91,7 @@ exports.cotizadorTransportadora = async (reqCotizacion) => {
 
 /* Se encarga de recuperar los datos personalizados para
 la cotización de un usuario. */
-exports.obtenerValoresCotizacion = async (headers) => {
+exports.getUserData = async (headers) => {
     // Variable en la que se almacena la autenticación obtenida por el header
     const autenticacion = headers.authentication;
     
@@ -122,22 +105,26 @@ exports.obtenerValoresCotizacion = async (headers) => {
     // Si el usuairo no existe, también devuelve error de autenticación
     if(!d.exists()) ThrowError("Autenticación inválida, usuario no encontrado", 404);
 
-    const infoEncontrada = d.data().datos_personalizados;
+    return d.data();
+}
 
+/* Se encarga de recuperar los datos personalizados para
+la cotización de un usuario. */
+exports.obtenerValoresCotizacion = (preciosPersonalizados) => {
     // Iteración que analiza todos los datos parametrizados para el usuario y dependiento del tipo de valor lo convierte, para evitar errores
-    Object.keys(infoEncontrada).forEach(k => {
-        const valor = infoEncontrada[k];
+    Object.keys(preciosPersonalizados).forEach(k => {
+        const valor = preciosPersonalizados[k];
         if(typeof valor === "string" && /^-?\d+(.\d+)?$/.test(valor)) {
             const valorConvertido = valor.includes(".") ? parseFloat(valor) : parseInt(valor);
-            infoEncontrada[k] = valorConvertido;
+            preciosPersonalizados[k] = valorConvertido;
         }
 
         if(valor === "") {
-            delete infoEncontrada[k];
+            delete preciosPersonalizados[k];
         }
     });
 
-    const parametros = Object.assign({}, datos_personalizados, infoEncontrada);
+    const parametros = Object.assign({}, datos_personalizados, preciosPersonalizados);
 
     // Fianlmente se devuelven los datos de cotización para un usuario en concreto
     return parametros;
@@ -176,6 +163,41 @@ exports.modificarRespuestaCotizacion = (solicitudCotizacion, cotizaciones, param
     });
 
     return cotizaciones;
+}
+
+
+
+
+async function getDefaultPrices() {
+    const priceByUserRef = collection(db, "preciosUsuarios");
+    const qPreciosDefault = query(priceByUserRef, where("id_user", "==", "_DEFAULT"));
+    const dataPreciosDefault = await getDocs(qPreciosDefault);
+    const defaultPrices = dataPreciosDefault.docs.map(d => d.data());
+    return defaultPrices;
+}
+
+exports.getPricesByUser = async (id_user) => {
+    const defaultPrices = await getDefaultPrices();
+    if(id_user === null) return defaultPrices;
+
+    const priceByUserRef = collection(db, "preciosUsuarios");
+    const qPreciosUser = query(priceByUserRef, where("id_user", "==", id_user));
+
+    const dataPreciosUser = await getDocs(qPreciosUser);
+
+    const pricesUser = dataPreciosUser.docs.map(d => {
+        const price = d.data();
+        const indexMatch = defaultPrices.findIndex(def => def.pesoMin === price.pesoMin && def.pesoMax === price.pesoMax && def.tipoCotizacion === price.tipoCotizacion);
+
+        if(indexMatch !== -1) {
+            const defaultMatch = defaultPrices.splice(indexMatch, 1)[0];
+            return Object.assign({}, defaultMatch, price);
+        }
+
+        return price;
+    });
+
+    return pricesUser.concat(defaultPrices);
 }
 
 function agregarSobreFleteHeka(solicitudCotizacion, respuestaCotizacion, preciosPersonalizados) {

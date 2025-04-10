@@ -1,12 +1,13 @@
 const { RSuccess, RError, RCatchError } = require("../../Network/responses");
 const { SchCotizar } = require("../../Schemas/cotizador");
-const { obtenerValoresCotizacion, cotizador, modificarRespuestaCotizacion, cotizadorTransportadora } = require("./network");
+const { obtenerValoresCotizacion, cotizador, modificarRespuestaCotizacion, cotizadorTransportadora, getUserData } = require("./network");
 
 /* La función `exports.auth` es una función middleware que se utiliza para autenticar una solicitud
 validando la existencia del usuairo heka. */
 exports.auth = async (req, res, next) => {
     try {
-        const parametrosCotizacion = await obtenerValoresCotizacion(req.headers);
+        const datosDeUsuario = await getUserData(req.headers);
+        const parametrosCotizacion = obtenerValoresCotizacion(datosDeUsuario.datos_personalizados);
         req.parametrosCotizacion = parametrosCotizacion;
         next();
     } catch (e) {

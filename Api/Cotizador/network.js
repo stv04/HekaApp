@@ -8,24 +8,11 @@ const { cotizarInter, calcularPreciosAdicionalesInterrapidisimo } = require("../
 const { cotizarCoord, calcularPreciosAdicionalesCoordinadora } = require("../Coordinadora/network");
 const transportadoras = require("../../config/transportadoras");
 const respuestasError = require("../../Network/respuestasError");
+const { getPricesByUser } = require("../Heka/network");
+const { tiposDeCotizacion } = require("../../Network/constants");
 
-const datos_personalizados = {
-    costo_zonal1: 8650,
-    costo_zonal2: 13300,
-    costo_zonal3: 2800,
-    costo_nacional1: 11500,
-    costo_nacional2: 20400,
-    costo_nacional3: 3400,
-    costo_especial1: 25550,
-    costo_especial2: 39000,
-    costo_especial3: 6300,
-    comision_servi: 3.1,
-    comision_heka: 1.5,
-    constante_convencional: 800,
-    constante_pagoContraentrega: 1700,
-    comision_punto: 10,
-    saldo: 0
-};
+
+const PESO_VOLUMETRICO = 1 / 6000;
 
 // objeto base que importa todas la funciones para cotizar por trasportadora 
 const cotizacionesDisponibLes = {
@@ -55,45 +42,7 @@ const ciudades = {
     }
 }
 
-const tiposDeCotizacion = {
-    URBAN: "URBAN",
-    DEPARTAMENTAL: "DEPARTAMENTAL",
-    NACIONAL: "NACIONAL"
-}
-
-const paquetePrecios = [{
-    pesoMin: 1,
-    pesoMax: 5,
-    precioBase: 10150,
-    precioKgAdicional: 4200,
-    tipo: tiposDeCotizacion.NACIONAL
-}, {
-    pesoMin: 6,
-    pesoMax: 29,
-    precioBase: 48900,
-    precioKgAdicional: 0,
-    tipo: tiposDeCotizacion.NACIONAL
-}, {
-    pesoMin: 30,
-    pesoMax: 60,
-    precioBase: 48900,
-    precioKgAdicional: 4200,
-    tipo: tiposDeCotizacion.NACIONAL
-}, {
-    pesoMin: 1,
-    pesoMax: 3,
-    precioBase: 6300,
-    precioKgAdicional: 0,
-    tipo: tiposDeCotizacion.URBAN
-}];
-
-const configuracionBase = {
-    porcentajeComision: .015, // Porcentaje en base al valor de recaudo (expresado en decimales)
-    porcentajeseguroMercancia: .01, // Porcentaje en base al valor declarado del producto (expresado en decimales)
-    pesoVolumetrico: 1 / 6000, // EL peso que se va a obtener en caso de que los volúmenes sean muy altos
-    comisionMinima: 0 // La comision qu ese establece como mínimo para las que no sean convencionales
-}
-const calculatePesoVolumetrico = volumen => volumen * configuracionBase.pesoVolumetrico;
+const calculatePesoVolumetrico = (volumen) => volumen * PESO_VOLUMETRICO;
 
 function validarTipoCotizacion(ciudadA, ciudadB) {
     if(ciudadA.dane === ciudadB.dane) {
@@ -105,20 +54,39 @@ function validarTipoCotizacion(ciudadA, ciudadB) {
     }
 }
 
-function obtenerValorFlete(peso, tipo) {
-    const precioFlete = paquetePrecios.find(p => peso >= p.pesoMin && p.pesoMax >= peso && p.tipo === tipo);
-
-    if(!precioFlete) ThrowSpecifiedError(respuestasError.C007);
-
+function calcularValorFlete(peso, precioFlete) {
     const diferenciaDePeso = peso - precioFlete.pesoMin;
     const valorPesoAdicional = precioFlete.precioKgAdicional * diferenciaDePeso;
 
     return precioFlete.precioBase + valorPesoAdicional;
 }
 
-/* Maneja el proceso de obtención de cotizaciones por transportadoras y ciudad. */
+function calcularSobreflete(reqCotizacion, config) {
+    const {porcentajeComision, constanteComision = 0, minimaComision = 0 } = config;
+    return reqCotizacion.tipo !== CONVENCIONAL ? 
+    Math.max(Math.ceil((reqCotizacion.valorRecaudo * porcentajeComision) + constanteComision), minimaComision) 
+    : 0;
+}
+
+function calcularSeguroMercancia(reqCotizacion, config) {
+    const {porcentajeSeguroMercancia = 0, constanteSeguroMercancia = 0, minimoSeguroMercancia = 0} = config;
+    return Math.max(
+        Math.ceil((reqCotizacion.valorSeguro * porcentajeSeguroMercancia) + constanteSeguroMercancia), minimoSeguroMercancia
+    );
+}
+
+function configuracionCotizacion(peso, tipo, paquetePrecios) {
+    const precioFlete = paquetePrecios.find(p => peso >= p.pesoMin && p.pesoMax >= peso && p.tipoCotizacion === tipo);
+
+    if(!precioFlete) ThrowSpecifiedError(respuestasError.C007);
+
+    return precioFlete;
+}
+
+/* Maneja el proceso de obtención de cotizaciones por transportadoras y ciudad para el manejo de logística propia. */
 exports.cotizador = async (reqCotizacion) => {
-    const {alto, ancho, largo} = reqCotizacion;
+    const {alto, ancho, largo, idFirebase} = reqCotizacion;
+
     // Se busca primero la ciudad destino para analizar disponibilidad
     const ciudadDestino = await getOne(reqCotizacion.idDaneCiudadDestino);
 
@@ -136,19 +104,18 @@ exports.cotizador = async (reqCotizacion) => {
         !configCiudadDestino 
         || ![autorizacionCiudad.DESTINO, autorizacionCiudad.MIXTO].includes(configCiudadDestino.tipoValidez)
     ) ThrowSpecifiedError(respuestasError.C006);
+
+    const preciosUsuario = await getPricesByUser(idFirebase);
+    const tipoDeCotizacion = validarTipoCotizacion(configCiudadOrigen, configCiudadDestino);
     
     const pesoVolumetrico = calculatePesoVolumetrico(alto*ancho*largo);
     const pesoTomado = Math.ceil(Math.max(reqCotizacion.peso, pesoVolumetrico));
-    const valorComision = reqCotizacion.tipo !== CONVENCIONAL ? 
-        Math.max(Math.ceil(reqCotizacion.valorRecaudo * configuracionBase.porcentajeComision), configuracionBase.comisionMinima) 
-        : 0;
-
-    const tipoDeCotizacion = validarTipoCotizacion(configCiudadOrigen, configCiudadDestino);
+    const configuracionUsuario = configuracionCotizacion(pesoTomado, tipoDeCotizacion, preciosUsuario);
 
     const response = {
-        valorFlete: obtenerValorFlete(pesoTomado, tipoDeCotizacion),
-        sobreFlete: valorComision,
-        seguroMercancia: reqCotizacion.valorSeguro * configuracionBase.porcentajeseguroMercancia,
+        valorFlete: calcularValorFlete(pesoTomado, configuracionUsuario),
+        sobreFlete: calcularSobreflete(reqCotizacion, configuracionUsuario),
+        seguroMercancia: calcularSeguroMercancia(reqCotizacion, configuracionUsuario),
         pesoTomado, pesoVolumetrico,
         detalles: reqCotizacion
     }
@@ -191,43 +158,6 @@ exports.cotizadorTransportadora = async (reqCotizacion) => {
 
     return response;
 
-}
-
-/* Se encarga de recuperar los datos personalizados para
-la cotización de un usuario. */
-exports.obtenerValoresCotizacion = async (headers) => {
-    // Variable en la que se almacena la autenticación obtenida por el header
-    const autenticacion = headers.authentication;
-    
-    // Si nada es retornado en el header reporta que se debe autenticar el usuario
-    if(!autenticacion) ThrowError("Se debe autenticar el usuario");
-
-    const coll = doc(db, "usuarios", autenticacion);
-
-    const d = await getDoc(coll);
-
-    // Si el usuairo no existe, también devuelve error de autenticación
-    if(!d.exists()) ThrowError("Autenticación inválida, usuario no encontrado", 404);
-
-    const infoEncontrada = d.data().datos_personalizados;
-
-    // Iteración que analiza todos los datos parametrizados para el usuario y dependiento del tipo de valor lo convierte, para evitar errores
-    Object.keys(infoEncontrada).forEach(k => {
-        const valor = infoEncontrada[k];
-        if(typeof valor === "string" && /^-?\d+(.\d+)?$/.test(valor)) {
-            const valorConvertido = valor.includes(".") ? parseFloat(valor) : parseInt(valor);
-            infoEncontrada[k] = valorConvertido;
-        }
-
-        if(valor === "") {
-            delete infoEncontrada[k];
-        }
-    });
-
-    const parametros = Object.assign({}, datos_personalizados, infoEncontrada);
-
-    // Fianlmente se devuelven los datos de cotización para un usuario en concreto
-    return parametros;
 }
 
 /* Modifica la respuesta de una cotización agregando
