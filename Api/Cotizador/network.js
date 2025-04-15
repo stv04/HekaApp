@@ -75,8 +75,14 @@ function calcularSeguroMercancia(reqCotizacion, config) {
     );
 }
 
-function configuracionCotizacion(peso, tipo, paquetePrecios) {
-    const precioFlete = paquetePrecios.find(p => peso >= p.pesoMin && p.pesoMax >= peso && p.tipoCotizacion === tipo);
+function configuracionCotizacion(peso, tipoCotizacion, tipoEnvio, paquetePrecios) {
+    const precioFlete = paquetePrecios.find(p => {
+        const pesoCoincidente = peso >= p.pesoMin && p.pesoMax >= peso;
+        const tipoCotizacionCoincidente = p.tipoCotizacion === tipoCotizacion;
+        const tipoEnvioCoincidente = p.tipoEnvio ? p.tipoEnvio = tipoEnvio : true;
+
+        return pesoCoincidente && tipoCotizacionCoincidente && tipoEnvioCoincidente;
+    });
 
     if(!precioFlete) ThrowSpecifiedError(respuestasError.C007);
 
@@ -85,7 +91,7 @@ function configuracionCotizacion(peso, tipo, paquetePrecios) {
 
 /* Maneja el proceso de obtención de cotizaciones por transportadoras y ciudad para el manejo de logística propia. */
 exports.cotizador = async (reqCotizacion) => {
-    const {alto, ancho, largo, idFirebase} = reqCotizacion;
+    const {alto, ancho, largo, id_user} = reqCotizacion;
 
     // Se busca primero la ciudad destino para analizar disponibilidad
     const ciudadDestino = await getOne(reqCotizacion.idDaneCiudadDestino);
@@ -105,12 +111,12 @@ exports.cotizador = async (reqCotizacion) => {
         || ![autorizacionCiudad.DESTINO, autorizacionCiudad.MIXTO].includes(configCiudadDestino.tipoValidez)
     ) ThrowSpecifiedError(respuestasError.C006);
 
-    const preciosUsuario = await getPricesByUser(idFirebase);
+    const preciosUsuario = await getPricesByUser(id_user);
     const tipoDeCotizacion = validarTipoCotizacion(configCiudadOrigen, configCiudadDestino);
     
     const pesoVolumetrico = calculatePesoVolumetrico(alto*ancho*largo);
     const pesoTomado = Math.ceil(Math.max(reqCotizacion.peso, pesoVolumetrico));
-    const configuracionUsuario = configuracionCotizacion(pesoTomado, tipoDeCotizacion, preciosUsuario);
+    const configuracionUsuario = configuracionCotizacion(pesoTomado, tipoDeCotizacion, reqCotizacion.tipo, preciosUsuario);
 
     const response = {
         valorFlete: calcularValorFlete(pesoTomado, configuracionUsuario),

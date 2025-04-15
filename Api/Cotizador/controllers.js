@@ -34,7 +34,7 @@ exports.cotizar = async (req, res) => {
             return RError(req, res, safePrse.error.issues, 400);
         }
 
-        solicitudCotizacion.idFirebase = req.query.idFirebase ?? null;
+        solicitudCotizacion.id_user = req.query.idFirebase ?? null;
         
         // Se procede a cotizar
         const response = await cotizador(solicitudCotizacion);

@@ -23,6 +23,7 @@ exports.crearEnvio = async (req, res) => {
         guia.fecha = fecha;
         guia.timeline = fecha.getTime();
         guia.fechaNatural = estandarizarFecha(fecha, "DD/MM/YYYY HH:mm");
+
         // Cotizamos antes de generar la guía, para validar información y costos
         const respuestaCotizacion = await cotizador(guia);
         delete respuestaCotizacion.detalles; // Se eliminan los detalles, ya que el cotizador responde a esto con la información que se le recibe

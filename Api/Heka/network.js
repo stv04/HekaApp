@@ -178,7 +178,7 @@ async function getDefaultPrices() {
 
 exports.getPricesByUser = async (id_user) => {
     const defaultPrices = await getDefaultPrices();
-    if(id_user === null) return defaultPrices;
+    if(!id_user) return defaultPrices;
 
     const priceByUserRef = collection(db, "preciosUsuarios");
     const qPreciosUser = query(priceByUserRef, where("id_user", "==", id_user));
@@ -187,7 +187,7 @@ exports.getPricesByUser = async (id_user) => {
 
     const pricesUser = dataPreciosUser.docs.map(d => {
         const price = d.data();
-        const indexMatch = defaultPrices.findIndex(def => def.pesoMin === price.pesoMin && def.pesoMax === price.pesoMax && def.tipoCotizacion === price.tipoCotizacion);
+        const indexMatch = defaultPrices.findIndex(def => def.pesoMin === price.pesoMin && def.pesoMax === price.pesoMax && def.tipoCotizacion === price.tipoCotizacion && def.tipoEnvio === price.tipoEnvio);
 
         if(indexMatch !== -1) {
             const defaultMatch = defaultPrices.splice(indexMatch, 1)[0];
