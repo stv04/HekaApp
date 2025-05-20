@@ -1,4 +1,4 @@
-const { doc, getDoc, getDocs, runTransaction, collection, updateDoc, increment, setDoc, addDoc, query, orderBy, where } = require("firebase/firestore");
+const { doc, getDoc, getDocs, runTransaction, collection, updateDoc, increment, setDoc, addDoc, query, orderBy, where, limit } = require("firebase/firestore");
 const { db } = require("../../storage/firebase");
 const { ThrowError, ThrowSpecifiedError } = require("../../Network/responses");
 const { getOne } = require("../Ciudades/network");
@@ -90,6 +90,35 @@ exports.obtenerEnvios = async () => {
     }
 }
 
+exports.actualizarEnvio = async (idEnvio, data) => {
+    try {
+        const document = doc(collectionEnvios, idEnvio);
+    
+        const envio = await updateDoc(document, data);
+        
+        return envio;
+
+    } catch (e) {
+        ThrowError(e.message, 500);
+    }
+}
+
+exports.enviosMensajeroPorEstadoRecepcion = async (userId, statuses) => {
+    try {
+        const q = query(collectionEnvios, where("id_punto", "==", userId), where("estado_recepcion", "in", statuses));
+        const envios = await getDocs(q);
+        
+        return envios.docs.map(d => {
+            const data = d.data();
+            data.id = d.id;
+            return data;
+        });
+
+    } catch (e) {
+        ThrowError(e.message, 500);
+    }
+}
+
 exports.obtenerEnvioByNumeroGuia = async (numeroGuia) => {
     try {
         const dataCollection = collectionEnvios;
@@ -97,6 +126,8 @@ exports.obtenerEnvioByNumeroGuia = async (numeroGuia) => {
         const q = query(dataCollection, where("numeroGuia", "==", numeroGuia));
         const envios = await getDocs(q);
 
+        if(!envios.size) return null;
+        
         const firstDoc = envios.docs[0];
         const data = firstDoc.data();
         data.id = firstDoc.id;
@@ -131,5 +162,53 @@ exports.obtenerEstados = async (idEnvio) => {
 
     } catch (e) {
         ThrowError(e.message, 500);
+    }
+}
+
+exports.obtenerUltimoEstado = async (idEnvio) => {
+    try {
+        const dataCollection = collection(collectionEnvios, idEnvio, "estados");
+    
+        const q = query(dataCollection, orderBy("timeline", "desc"), limit(1));
+        const envios = await getDocs(q);
+        
+        return envios.size ? envios.docs[0].data() : null;s
+    } catch (e) {
+        ThrowError(e.message, 500);
+    }
+}
+
+
+exports.actualizarRutaEntrega = async (idUser, data) => {
+    const docGestion = doc(db, "rutaEntrega", idUser);
+
+    return updateDoc(docGestion, data);
+}
+
+exports.obtenerRutaEntrega = async (idUser) => {
+    const docGestion = doc(db, "rutaEntrega", idUser);
+
+    const envio = await getDoc(docGestion);
+        
+    return envio.exists ? envio.data() : null;
+} 
+
+exports.rutaEntregaGuia = async (numeroGuia) => {
+    numeroGuia = numeroGuia.toString();
+    const collGestion = collection(db, "rutaEntrega");
+
+    const q = query(collGestion, where("guias", "array-contains", numeroGuia), limit(1));
+    const ruta = await getDocs(q);
+    
+    return ruta.size ? ruta.docs[0].data() : null;
+}
+
+exports.envioARuta = envio => {
+    return {
+        id: envio.id,
+        numeroGuia: envio.numeroGuia,
+        direccion: envio.esDevolucion ? envio.info_origen.direccion : envio.info_destino.direccion,
+        estado: envio.estado_recepcion,
+        location: envio.esDevolucion ? envio.info_origen.location : envio.info_destino.location
     }
 }

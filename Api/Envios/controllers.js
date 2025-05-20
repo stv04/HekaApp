@@ -1,9 +1,9 @@
 const fetch = require("node-fetch");
-const { RSuccess, RError, RCatchError } = require("../../Network/responses");
+const { RSuccess, RError, RCatchError, ThrowError } = require("../../Network/responses");
 const { SchNuevoEnvio, SchEstado } = require("../../Schemas/envios");
 const { estandarizarFecha } = require("../../Utils/funciones");
 const { cotizador } = require("../Cotizador/network");
-const { idGuia, generarEnvio, guardarEstado, obtenerEstados, obtenerEnvio } = require("./network");
+const { idGuia, generarEnvio, guardarEstado, obtenerEstados, obtenerEnvio, actualizarRutaEntrega, obtenerRutaEntrega, enviosMensajeroPorEstadoRecepcion, rutaEntregaGuia, obtenerEnvioByNumeroGuia, envioARuta, obtenerUltimoEstado } = require("./network");
 
 
 /* Función asincrónica que maneja una solicitud para realizar una cotización. */
@@ -75,7 +75,6 @@ exports.agregarSeguimiento = async (req, res) => {
 
         infoGuia = await obtenerEnvio(idEnvio);
 
-
         await guardarEstado(idEnvio, seguimiento);
 
         const response = {
@@ -120,6 +119,93 @@ exports.obtenerSeguimiento = async (req, res) => {
 
         RSuccess(req, res, basicInformation);
 
+    } catch (e) {
+        RCatchError(req, res, e);
+    }
+}
+
+exports.obtenerRuta = async (req, res) => {
+    try {
+        const { numeroGuia } = req.params;
+
+        const envio = await obtenerEnvioByNumeroGuia(numeroGuia);
+        if( !envio ) throw new Error("No existe un envío asociado a este número de guía");
+
+        const estado = await obtenerUltimoEstado(envio.id);
+        if( estado.esNovedad ) throw new Error("Esta guía se encuentra en novedad");
+
+        if( estado.entregado ) throw new Error("Esta guía ya ha sido entregada");
+
+        const rutaEntrega = await rutaEntregaGuia(numeroGuia);
+
+        if( !rutaEntrega ) throw new Error("Esta guía no tiene ninguna ruta de entrega");
+
+        const response = {
+            location: rutaEntrega.location,
+            posicion: rutaEntrega.guias.indexOf(numeroGuia),
+            envio: envioARuta(envio)
+        }
+
+        RSuccess(req, res, response);
+    } catch (e) {
+        RCatchError(req, res, e);
+    }
+}
+
+exports.obtenerRutasMensajero = async (req, res) => {
+    try {
+        const { idUser } = req.params;
+        const rutaEntrega = await obtenerRutaEntrega(idUser);
+        console.log(rutaEntrega);
+
+        const enviosPendientes = await enviosMensajeroPorEstadoRecepcion(idUser, ["VALIDADO", "EMPACADO", "ENRUTADO", "BLOQUEADO"]);
+
+        const rutaBase = enviosPendientes.map(env => {
+            let indexRoute = -1;
+            if(rutaEntrega) {
+                indexRoute = rutaEntrega.guias.indexOf(env.numeroGuia);
+            }
+
+            const indicadorRuta = envioARuta(env);
+            
+            indicadorRuta.posicion = indexRoute;
+            indicadorRuta.active = indexRoute !== -1 && env.estado_recepcion !== "BLOQUEADO";
+            
+            return indicadorRuta;
+        })
+        .sort((a,b) => {
+            // Mostramos por encima las que son activas
+            if(a.active && b.active) {
+                // En caso que ambos sean activos, se valida el de menor indice
+                return a.posicion - b.posicion;
+            } else if (a.active) {
+                return -1;
+            } else if (b.active) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        const result = {
+            ...rutaEntrega,
+            ruta: rutaBase
+        }
+
+        RSuccess(req, res, result);
+    } catch (e) {
+        RCatchError(req, res, e);
+    }
+}
+
+exports.actualizarRuta = async (req, res) => {
+    try {
+        const { idUser } = req.params;
+        const data = req.body;
+
+        const response = await actualizarRutaEntrega(idUser, data);
+
+        RSuccess(req, res, response);
     } catch (e) {
         RCatchError(req, res, e);
     }
