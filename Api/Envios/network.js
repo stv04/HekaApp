@@ -8,6 +8,7 @@ const { cotizarInter, calcularPreciosAdicionalesInterrapidisimo } = require("../
 const { cotizarCoord, calcularPreciosAdicionalesCoordinadora } = require("../Coordinadora/network");
 const transportadoras = require("../../config/transportadoras");
 const respuestasError = require("../../Network/respuestasError");
+const config = require("../../config/config");
 
 const collectionEnvios = collection(db, "envios");
 let universalId = null;
@@ -44,7 +45,9 @@ exports.idGuia = async () => {
             idEnvios: count
         });
 
-        return realCount.toString().padStart(10, "1000000000");
+        const padStart = config.ENVIRONMENT === "dev" ? "P-1000000" : "1000000000";
+        console.log(config.ENVIRONMENT, padStart);
+        return realCount.toString().padStart(10, padStart);
     } catch(e) {
         ThrowError(e.message, 500);
     }
@@ -105,7 +108,12 @@ exports.actualizarEnvio = async (idEnvio, data) => {
 
 exports.enviosMensajeroPorEstadoRecepcion = async (userId, statuses) => {
     try {
-        const q = query(collectionEnvios, where("id_punto", "==", userId), where("estado_recepcion", "in", statuses));
+        const q = query(
+            collectionEnvios, 
+            where("id_punto", "==", userId), 
+            where("estado_recepcion", "in", statuses)
+        );
+
         const envios = await getDocs(q);
         
         return envios.docs.map(d => {
@@ -185,6 +193,12 @@ exports.actualizarRutaEntrega = async (idUser, data) => {
     return updateDoc(docGestion, data);
 }
 
+exports.crearRutaEntrega = async (idUser, data) => {
+    const docGestion = doc(db, "rutaEntrega", idUser);
+
+    return setDoc(docGestion, data);
+}
+
 exports.obtenerRutaEntrega = async (idUser) => {
     const docGestion = doc(db, "rutaEntrega", idUser);
 
@@ -208,7 +222,8 @@ exports.envioARuta = envio => {
         id: envio.id,
         numeroGuia: envio.numeroGuia,
         direccion: envio.esDevolucion ? envio.info_origen.direccion : envio.info_destino.direccion,
-        estado: envio.estado_recepcion,
+        estado: envio.estado,
+        estado_recepcion: envio.estado_recepcion,
         location: envio.esDevolucion ? envio.info_origen.location : envio.info_destino.location
     }
 }

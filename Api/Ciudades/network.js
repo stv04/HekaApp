@@ -1,6 +1,6 @@
 const { collection, getDocs, doc, getDoc } = require("firebase/firestore");
 const { db } = require("../../storage/firebase");
-const { TrowError } = require("../../Network/responses");
+const { ThrowError } = require("../../Network/responses");
 
 let ciudades = [], ciudadesSimple = [];
 async function obtenerCiudades() {
@@ -52,7 +52,7 @@ async function getOne(dane_ciudad) {
     const coll = doc(db, "ciudades", dane_ciudad);
     const d = await getDoc(coll);
 
-    if(!d.exists) TrowError("No se consigue la ciudad que estás buscando: " + dane_ciudad);
+    if(!d.exists()) ThrowError("No se consigue la ciudad que estás buscando: " + dane_ciudad);
 
     return d.data();
 }

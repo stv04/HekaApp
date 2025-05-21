@@ -3,7 +3,9 @@ const { RSuccess, RError, RCatchError, ThrowError } = require("../../Network/res
 const { SchNuevoEnvio, SchEstado } = require("../../Schemas/envios");
 const { estandarizarFecha } = require("../../Utils/funciones");
 const { cotizador } = require("../Cotizador/network");
-const { idGuia, generarEnvio, guardarEstado, obtenerEstados, obtenerEnvio, actualizarRutaEntrega, obtenerRutaEntrega, enviosMensajeroPorEstadoRecepcion, rutaEntregaGuia, obtenerEnvioByNumeroGuia, envioARuta, obtenerUltimoEstado } = require("./network");
+const { idGuia, generarEnvio, guardarEstado, obtenerEstados, obtenerEnvio, actualizarRutaEntrega, obtenerRutaEntrega, enviosMensajeroPorEstadoRecepcion, rutaEntregaGuia, obtenerEnvioByNumeroGuia, envioARuta, obtenerUltimoEstado, actualizarEnvio, crearRutaEntrega } = require("./network");
+const { estadosRecepcion } = require("../../Network/constants");
+const config = require("../../config/config");
 
 
 /* Función asincrónica que maneja una solicitud para realizar una cotización. */
@@ -23,6 +25,8 @@ exports.crearEnvio = async (req, res) => {
         guia.fecha = fecha;
         guia.timeline = fecha.getTime();
         guia.fechaNatural = estandarizarFecha(fecha, "DD/MM/YYYY HH:mm");
+
+        console.log(guia);
 
         // Cotizamos antes de generar la guía, para validar información y costos
         const respuestaCotizacion = await cotizador(guia);
@@ -57,8 +61,8 @@ exports.agregarSeguimiento = async (req, res) => {
     try {
         const seguimiento = req.body;
         const { idEnvio } = req.params;
-        // const apiPatchEstado = "http://localhost:6200/procesos/actualizarEstado/";
-        const apiPatchEstado = "https:admin.hekaentrega.co/procesos/actualizarEstado/";
+
+        const apiPatchEstado = config.ENVIRONMENT === "dev" ? "http://localhost:6200/procesos/actualizarEstado/" : "https:admin.hekaentrega.co/procesos/actualizarEstado/";
 
         // Se valida que el formato recibido sea el correcto
         const safePrse = SchEstado.safeParse(seguimiento);
@@ -74,6 +78,17 @@ exports.agregarSeguimiento = async (req, res) => {
         seguimiento.fechaNatural = estandarizarFecha(fecha, "DD/MM/YYYY HH:mm");
 
         infoGuia = await obtenerEnvio(idEnvio);
+
+        const actualizacionEnvio = {
+            estado_recepcion: seguimiento.tipo,
+            estado: seguimiento.estado
+        }
+
+        // Una vez este estado es ingresado por primera vez, 
+        // automáticamente la guía se marca como una devolución permanente
+        if(seguimiento.tipo === estadosRecepcion.devuelto) actualizacionEnvio.esDevolucion = true;
+
+        await actualizarEnvio(idEnvio, actualizacionEnvio);
 
         await guardarEstado(idEnvio, seguimiento);
 
@@ -129,16 +144,17 @@ exports.obtenerRuta = async (req, res) => {
         const { numeroGuia } = req.params;
 
         const envio = await obtenerEnvioByNumeroGuia(numeroGuia);
-        if( !envio ) throw new Error("No existe un envío asociado a este número de guía");
+        if( !envio ) throw new Error("No existe un envío asociado a este número");
 
         const estado = await obtenerUltimoEstado(envio.id);
-        if( estado.esNovedad ) throw new Error("Esta guía se encuentra en novedad");
+        if( estado.esNovedad ) throw new Error("Esta envío posee la siguiente novedad: " + estado.descripcion);
 
-        if( estado.entregado ) throw new Error("Esta guía ya ha sido entregada");
+        if( [ estadosRecepcion.entregado, estadosRecepcion.devuelto ].includes(envio.estado_recepcion) ) 
+            throw new Error("Esta paquete ya ha sido entregada");
 
         const rutaEntrega = await rutaEntregaGuia(numeroGuia);
 
-        if( !rutaEntrega ) throw new Error("Esta guía no tiene ninguna ruta de entrega");
+        if( !rutaEntrega ) throw new Error("Este paquete no tiene ninguna ruta de entrega");
 
         const response = {
             location: rutaEntrega.location,
@@ -156,9 +172,12 @@ exports.obtenerRutasMensajero = async (req, res) => {
     try {
         const { idUser } = req.params;
         const rutaEntrega = await obtenerRutaEntrega(idUser);
-        console.log(rutaEntrega);
 
-        const enviosPendientes = await enviosMensajeroPorEstadoRecepcion(idUser, ["VALIDADO", "EMPACADO", "ENRUTADO", "BLOQUEADO"]);
+        const enviosPendientes = await enviosMensajeroPorEstadoRecepcion(idUser, [
+            estadosRecepcion.validado, estadosRecepcion.empacado, 
+            estadosRecepcion.novedad, estadosRecepcion.novedad_op,
+            estadosRecepcion.reparto
+        ]);
 
         const rutaBase = enviosPendientes.map(env => {
             let indexRoute = -1;
@@ -169,7 +188,7 @@ exports.obtenerRutasMensajero = async (req, res) => {
             const indicadorRuta = envioARuta(env);
             
             indicadorRuta.posicion = indexRoute;
-            indicadorRuta.active = indexRoute !== -1 && env.estado_recepcion !== "BLOQUEADO";
+            indicadorRuta.active = indexRoute !== -1 && env.estado_recepcion !== estadosRecepcion.novedad;
             
             return indicadorRuta;
         })
@@ -203,7 +222,11 @@ exports.actualizarRuta = async (req, res) => {
         const { idUser } = req.params;
         const data = req.body;
 
-        const response = await actualizarRutaEntrega(idUser, data);
+        const rutaEntrega = await obtenerRutaEntrega(idUser);
+        
+        const response = rutaEntrega 
+            ? await actualizarRutaEntrega(idUser, data) 
+            : await crearRutaEntrega(idUser, data);
 
         RSuccess(req, res, response);
     } catch (e) {
