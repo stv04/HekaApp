@@ -77,7 +77,7 @@ exports.agregarSeguimiento = async (req, res) => {
         seguimiento.timeline = fecha.getTime();
         seguimiento.fechaNatural = estandarizarFecha(fecha, "DD/MM/YYYY HH:mm");
 
-        infoGuia = await obtenerEnvio(idEnvio);
+        const infoGuia = await obtenerEnvio(idEnvio);
 
         const actualizacionEnvio = {
             estado_recepcion: seguimiento.tipo,
@@ -219,8 +219,38 @@ exports.obtenerRutasMensajero = async (req, res) => {
 
 exports.actualizarRuta = async (req, res) => {
     try {
+        const templateName = "seguimiento_envio_hekaprop";
+        const apiSendMessage = "https:admin.hekaentrega.co/mensajeria/ws/sendMessage/" + templateName;
+
         const { idUser } = req.params;
         const data = req.body;
+        const { guias } = data;
+
+        if(guias && guias.length) {
+            for(let numGuia of guias) {
+                const envio = await obtenerEnvioByNumeroGuia(numGuia);
+                if(!envio.mensajeSeguimientoEnviado) {
+                    
+                    const message = {
+                        number: envio.esDevolucion ? envio.info_origen.celular : envio.info_destino.celular,
+                        params: [envio.numeroGuia, `https://admin.hekaentrega.co/consulta/seguimientoPaquete?n=${envio.numeroGuia}`].map((p) => ({ default: p }))
+                    }
+
+                    await fetch(apiSendMessage, {
+                        method: "POST",
+                        headers: {
+                            "Content-type": "Application/json"
+                        },
+                        body: JSON.stringify(message)
+                    })
+                    .then(d => d.json())
+                    .then(() => actualizarEnvio(envio.id, {mensajeSeguimientoEnviado: true}))
+                    .catch(e => {
+                        console.log("Error al enviar mensaje: " + e.message);
+                    });
+                }
+            }
+        }
 
         const rutaEntrega = await obtenerRutaEntrega(idUser);
         
