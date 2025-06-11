@@ -32,7 +32,7 @@ const ciudades = {
         dane: 54001000,
         ciudad: "CUCUTA",
         departamento: "NORTE DE SANTANDER",
-        tipoValidez: null // Al ser nulo, se trata de un destino inactivo tanto para recibir como para envíar
+        tipoValidez: autorizacionCiudad.ORIGEN // Al ser nulo, se trata de un destino inactivo tanto para recibir como para envíar
     },
     11001000: {
         dane: 11001000,
@@ -77,9 +77,9 @@ function calcularSeguroMercancia(reqCotizacion, config) {
 
 function configuracionCotizacion(peso, tipoCotizacion, tipoEnvio, paquetePrecios) {
     const precioFlete = paquetePrecios.find(p => {
-        const pesoCoincidente = peso >= p.pesoMin && p.pesoMax >= peso;
+        const pesoCoincidente = peso >= p.pesoMin && p.pesoMax > peso;
         const tipoCotizacionCoincidente = p.tipoCotizacion === tipoCotizacion;
-        const tipoEnvioCoincidente = p.tipoEnvio ? p.tipoEnvio = tipoEnvio : true;
+        const tipoEnvioCoincidente = p.tipoEnvio ? p.tipoEnvio === tipoEnvio : true;
 
         return pesoCoincidente && tipoCotizacionCoincidente && tipoEnvioCoincidente;
     });

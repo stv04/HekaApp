@@ -36,6 +36,12 @@ const estadosRecepcion = {
     bodega: "EN BODEGA", // Cuando el mensajero ha dejado el paquete en alguna dirección de referencia Heka
 }
 
+const tiposEnvio = {
+    CONTRAENTREGA: "PAGO DESTINO",
+    PAGO_CONTRAENTREGA: "PAGO CONTRAENTREGA",
+    CONVENCIONAL: "CONVENCIONAL",
+}
 
 
-module.exports = {datos_personalizados, tiposDeCotizacion, estadosRecepcion}
+
+module.exports = {datos_personalizados, tiposDeCotizacion, estadosRecepcion, tiposEnvio}

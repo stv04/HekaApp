@@ -1,4 +1,4 @@
-const { tiposDeCotizacion } = require("./constants");
+const { tiposDeCotizacion, tiposEnvio } = require("./constants");
 
 const configuracionBase = {
     porcentajeComision: 0.02, // Porcentaje par ala comisión de pago contraentrega
@@ -23,8 +23,36 @@ module.exports = [{
     id: "jsz5UY9byb4fNeETGz5P", 
     id_user: "_DEFAULT",
     pesoMin: 1,
-    pesoMax: 5,
-    precioBase: 10150,
-    precioKgAdicional: 4200,
-    tipoCotizacion: tiposDeCotizacion.NACIONAL
+    pesoMax: 3,
+    precioBase: 12900,
+    precioKgAdicional: 0,
+    tipoEnvio: tiposEnvio.CONVENCIONAL,
+    tipoCotizacion: tiposDeCotizacion.NACIONAL,
+
+    porcentajeComision: 0
+}, {
+    ...configuracionBase,
+    id_user: "_DEFAULT",
+    id: "8AXyvMRWByC1ZTgfxKbs",
+    pesoMin: 1,
+    pesoMax: 3,
+    precioBase: 12900,
+    precioKgAdicional: 0,
+    tipoEnvio: tiposEnvio.CONTRAENTREGA,
+    tipoCotizacion: tiposDeCotizacion.NACIONAL,
+
+    porcentajeComision: 0
+}, {
+    ...configuracionBase,
+    id_user: "_DEFAULT",
+    id: "wGdGAvJPcJLPXbhD70Ia",
+    pesoMin: 1,
+    pesoMax: 3,
+    precioBase: 13900,
+    precioKgAdicional: 0,
+    tipoEnvio: tiposEnvio.PAGO_CONTRAENTREGA,
+    tipoCotizacion: tiposDeCotizacion.NACIONAL,
+
+    porcentajeComision: 0.029,
+    porcentajeSeguroMercancia: 0
 }];
