@@ -123,6 +123,7 @@ exports.cotizador = async (reqCotizacion) => {
         sobreFlete: calcularSobreflete(reqCotizacion, configuracionUsuario),
         seguroMercancia: calcularSeguroMercancia(reqCotizacion, configuracionUsuario),
         pesoTomado, pesoVolumetrico,
+        aplicaCostoDevolucion: configuracionUsuario.aplicaCostoDevolucion ?? false,
         detalles: reqCotizacion
     }
 

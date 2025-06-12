@@ -1,5 +1,8 @@
 module.exports = guia => {
-    const {id, tipo, numeroGuia, info_destino, info_origen, valorRecaudoText, fondo, logoHeka, aditionalData} = guia;
+    const {id, tipo, numeroGuia, info_destino, info_origen, valorRecaudoText, fondo, logoHeka, aditionalData, observaciones, autoriza_inventario, dice_contener} = guia;
+    
+    const textObservaciones = observaciones ? `${observaciones}\n` : "";
+    const textAutorizaInventario = autoriza_inventario ? "Remitente Autoriza inventario.\n" : "Remitente NO autoriza inventario.\n";
 
     return {
         pageSize: 'A5',
@@ -54,6 +57,7 @@ module.exports = guia => {
                             ]
                         }, {
                             rowSpan: 2,
+                            fit: 200, // Tamaño del qr
                             qr: `https://admin.hekaentrega.co/plataforma2.html?id=${id}#flexii_guia_recept`
                         }],
                         [{
@@ -67,7 +71,10 @@ module.exports = guia => {
                         [{
                             colSpan: 2,
                             text: [
+                                { text: 'Contenido: ', bold: true },
+                                dice_contener + "\n",
                                 { text: 'Observaciones cliente:\n', bold: true },
+                                textObservaciones, textAutorizaInventario,
                                 `Doc. si Valor a recaudar: en QR o Efectivo\t`,
                                 { text: `${valorRecaudoText}\n\n`, bold: true, fontSize: 20 }
                             ]
