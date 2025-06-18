@@ -65,18 +65,19 @@ module.exports = guia => {
                                 { text: 'PARA: ', bold: true },
                                 info_destino.nombre_completo + '\n',
                                 info_destino.direccion + '\n\n',
-                                `${aditionalData.nombreCiudadDestino}, TEL: ${info_destino.celular}`
+                                `${aditionalData.nombreCiudadDestino}, TEL: ${info_destino.celular}\n\n`,
+                                { text: 'Contenido: ', bold: true },
+                                dice_contener + "\n",
+                                textAutorizaInventario
                             ]
                         }],
                         [{
                             colSpan: 2,
                             text: [
-                                { text: 'Contenido: ', bold: true },
-                                dice_contener + "\n",
+                                `Doc. si Valor a recaudar: en QR o Efectivo\t\t\t`,
+                                { text: `${valorRecaudoText}\n`, bold: true, fontSize: 20 },
                                 { text: 'Observaciones cliente:\n', bold: true },
-                                textObservaciones, textAutorizaInventario,
-                                `Doc. si Valor a recaudar: en QR o Efectivo\t`,
-                                { text: `${valorRecaudoText}\n\n`, bold: true, fontSize: 20 }
+                                textObservaciones,
                             ]
                         }]
                     ]

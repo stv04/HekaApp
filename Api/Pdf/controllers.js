@@ -41,8 +41,8 @@ exports.pdfGuia = async (req, res) => {
 
         doc.on("end", () => {
             result = Buffer.concat(chunks);
-            // res.type('application/pdf').send(result);
-            RSuccess(req, res, result.toString("base64"));
+            res.type('application/pdf').send(result);
+            // RSuccess(req, res, result.toString("base64"));
         });
         
         doc.end();

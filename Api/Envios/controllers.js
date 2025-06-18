@@ -220,7 +220,7 @@ exports.obtenerRutasMensajero = async (req, res) => {
 exports.actualizarRuta = async (req, res) => {
     try {
         const templateName = "seguimiento_envio_hekaprop";
-        const apiSendMessage = "https:admin.hekaentrega.co/mensajeria/ws/sendMessage/" + templateName;
+        const apiSendMessage = "https://admin.hekaentrega.co/mensajeria/ws/sendMessage/" + templateName;
 
         const { idUser } = req.params;
         const data = req.body;
