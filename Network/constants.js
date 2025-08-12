@@ -20,7 +20,8 @@ const datos_personalizados = {
 const tiposDeCotizacion = {
     URBAN: "URBAN",
     DEPARTAMENTAL: "DEPARTAMENTAL",
-    NACIONAL: "NACIONAL"
+    NACIONAL: "NACIONAL",
+    ESPECIAL: "ESPECIAL"
 }
 
 const estadosRecepcion = {

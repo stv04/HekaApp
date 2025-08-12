@@ -9,6 +9,8 @@ const { cotizarCoord, calcularPreciosAdicionalesCoordinadora } = require("../Coo
 const transportadoras = require("../../config/transportadoras");
 const respuestasError = require("../../Network/respuestasError");
 const paquetePrecios = require("../../Network/genericPrices");
+const { fetchApp2 } = require("../../Utils/coneccionRefact");
+const { tiposDeCotizacion, tiposEnvio } = require("../../Network/constants");
 
 // objeto base que importa todas la funciones para cotizar por trasportadora 
 const cotizacionesDisponibLes = {
@@ -170,10 +172,82 @@ exports.modificarRespuestaCotizacion = (solicitudCotizacion, cotizaciones, param
 
 async function getDefaultPrices() {
     const priceByUserRef = collection(db, "preciosUsuarios");
-    const qPreciosDefault = query(priceByUserRef, where("id_user", "==", "_DEFAULT"));
+    const qPreciosDefault = query(priceByUserRef, where("id_usuario_firebase", "==", "_DEFAULT"));
     const dataPreciosDefault = await getDocs(qPreciosDefault);
-    const defaultPrices = dataPreciosDefault.docs.map(d => d.data());
+    const defaultPrices = await Promise.all(dataPreciosDefault.docs.map(d => obtenerPreciosMongo(d.data())));
     return defaultPrices;
+}
+
+async function obtenerPreciosMongo(price) {
+    if(!price.banco_de_precios_id) return price;
+    const newPrice = await fetchApp2(`/shipping/price_bank?id=${price.banco_de_precios_id}`).send();
+
+    if(newPrice.error) throw new Error(`Existe un error al cargar los precios de cotización RFT: ${newPrice.message}`);
+
+    const response = transformPriceStructMongo(newPrice.response);
+
+    response.id_usuario_firebase = price.id_usuario_firebase;
+
+    return response;
+}
+
+function transformPriceStructMongo(price) {
+    /* const price = {
+        "_id": "688cbfbfd544ebdd50430d3b",
+        "name": "Prueba 2",
+        "type_quoter": "national",
+        "commission": {
+            "percentage": 0,
+            "constant": 0,
+            "minimum": 0
+        },
+        "insurance": {
+            "percentage": 0,
+            "constant": 0,
+            "minimum": 0
+        },
+        "weight_range": {
+            "min_kg": 2,
+            "max_kg": 4
+        },
+        "freight": {
+            "base_price": 10000,
+            "extra_kg_price": 0
+        },
+        "charge_return": false,
+        "shipping_type": 1,
+        "createdAt": "2025-08-01T13:23:11.408Z",
+        "updatedAt": "2025-08-01T13:23:11.408Z",
+        "__v": 0
+    }; */
+
+    const typeQuoterTrans = {
+        'urban': tiposDeCotizacion.URBAN,
+        'zonal': tiposDeCotizacion.DEPARTAMENTAL,
+        'national': tiposDeCotizacion.NACIONAL,
+        'special': tiposDeCotizacion.ESPECIAL
+    }
+
+    const shippingTypeTrans = [null, tiposEnvio.PAGO_CONTRAENTREGA, tiposEnvio.CONTRAENTREGA, tiposEnvio.CONVENCIONAL];
+
+    return {
+		pesoMax: price.weight_range.max_kg,
+		pesoMin: price.weight_range.min_kg,
+
+		porcentajeComision: price.commission.percentage,
+		constanteComision: price.commission.constant,
+		minimaComision: price.commission.minimum,
+
+		porcentajeSeguroMercancia: price.insurance.percentage,
+		constanteSeguroMercancia: price.insurance.constant,
+		minimoSeguroMercancia: price.insurance.minimum,
+		tipoCotizacion: typeQuoterTrans[price.type_quoter],
+		tipoEnvio: shippingTypeTrans[price.shipping_type],
+		id: price._id, // cambiarlo por el de firebase luego de que se ejecute esta función
+		precioKgAdicional: price.freight.extra_kg_price,
+		precioBase: price.freight.base_price,
+		id_usuario_firebase: '', // llenarlo adelante
+	}
 }
 
 exports.getPricesByUser = async (id_user) => {
@@ -181,12 +255,17 @@ exports.getPricesByUser = async (id_user) => {
     if(!id_user) return defaultPrices;
 
     const priceByUserRef = collection(db, "preciosUsuarios");
-    const qPreciosUser = query(priceByUserRef, where("id_user", "==", id_user));
+    const qPreciosUser = query(priceByUserRef, where("id_usuario_firebase", "==", id_user));
 
     const dataPreciosUser = await getDocs(qPreciosUser);
 
-    const pricesUser = dataPreciosUser.docs.map(d => {
+    const pricesTransformed = await Promise.all(dataPreciosUser.docs.map(d => {
         const price = d.data();
+
+        return obtenerPreciosMongo(price);
+    }));
+
+    const pricesUser = pricesTransformed.map(price => {
         const indexMatch = defaultPrices.findIndex(def => def.pesoMin === price.pesoMin && def.pesoMax === price.pesoMax && def.tipoCotizacion === price.tipoCotizacion && def.tipoEnvio === price.tipoEnvio);
 
         if(indexMatch !== -1) {
@@ -230,8 +309,6 @@ function calcularSobrefleteHeka(solicitudCotizacion, respuestaCotizacion, precio
 /**Funcionalidad que se activa con la solicitud de cotizar por flexii para añadir la comisión impuesta por flexii */
 function agregarComisionAdicionalFlexii(respuestaCotizacion) {
     const detalles = respuestaCotizacion.detalles;
-
-    console.log(detalles);
 
     // comisión adicional viene dada por la probabilidad de cuantas guía se devuelven en promedio (de cada diez guía, se devuelven 3)
     const comisionHekaAdicional = Math.round((detalles.costoDevolucion*3)/7);

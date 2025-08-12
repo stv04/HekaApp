@@ -120,9 +120,23 @@ exports.agregarSeguimiento = async (req, res) => {
 exports.obtenerSeguimiento = async (req, res) => {
 
     try {
-        const { idEnvio } = req.params;
+        let { idEnvio } = req.params; // Esto representa directamente el di dele envío o el número de guía
 
-        const envio = await obtenerEnvio(idEnvio);
+        // Primero se intenta obtener el envío por el identificador
+        // En caso que no exista, se intenta buscar el envío por número de guía
+        let envio = await obtenerEnvio(idEnvio)
+        .then(async res => {
+            if(res) return res;
+            
+            const resultByNumGuia = await obtenerEnvioByNumeroGuia(idEnvio);
+            if(!resultByNumGuia) return null;
+
+            idEnvio = resultByNumGuia.id;
+            return resultByNumGuia;
+        });
+
+        // Se busca por id y por número de guía, en caso que no exista de ninguna forma, se devuelve error
+        if(!envio) ThrowError('No existe un envío asociado con el parámetro ingresado.');
 
         const basicInformation = {
             numeroGuia: envio.numeroGuia,

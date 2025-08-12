@@ -71,8 +71,7 @@ exports.obtenerEnvio = async (idEnvio) => {
         const dataCollection = doc(collectionEnvios, idEnvio);
     
         const envio = await getDoc(dataCollection);
-        
-        return envio.data();
+        return envio.exists() ? envio.data() : null;
 
     } catch (e) {
         ThrowError(e.message, 500);
