@@ -3,6 +3,7 @@ module.exports = guia => {
     
     const textObservaciones = observaciones ? `${observaciones}\n` : "";
     const textAutorizaInventario = autoriza_inventario ? "Remitente Autoriza inventario.\n" : "Remitente NO autoriza inventario.\n";
+    const localidad = [info_destino.localidad ?? '', info_destino.barrio ?? ''].filter(Boolean).join(' - ');
 
     return {
         pageSize: 'A5',
@@ -64,6 +65,7 @@ module.exports = guia => {
                             text: [
                                 { text: 'PARA: ', bold: true },
                                 info_destino.nombre_completo + '\n',
+                                `Loc: ${localidad}\n`,
                                 info_destino.direccion + '\n\n',
                                 `${aditionalData.nombreCiudadDestino}, TEL: ${info_destino.celular}\n\n`,
                                 { text: 'Contenido: ', bold: true },
