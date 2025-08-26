@@ -6,6 +6,7 @@ const { cotizador } = require("../Cotizador/network");
 const { idGuia, generarEnvio, guardarEstado, obtenerEstados, obtenerEnvio, actualizarRutaEntrega, obtenerRutaEntrega, enviosMensajeroPorEstadoRecepcion, rutaEntregaGuia, obtenerEnvioByNumeroGuia, envioARuta, obtenerUltimoEstado, actualizarEnvio, crearRutaEntrega } = require("./network");
 const { estadosRecepcion } = require("../../Network/constants");
 const config = require("../../config/config");
+const moment = require('moment-timezone');
 
 
 /* Función asincrónica que maneja una solicitud para realizar una cotización. */
@@ -21,10 +22,10 @@ exports.crearEnvio = async (req, res) => {
             return RError(req, res, safePrse.error.issues, 400);
         }
 
-        const fecha = new Date(); 
-        guia.fecha = fecha;
-        guia.timeline = fecha.getTime();
-        guia.fechaNatural = estandarizarFecha(fecha, "DD/MM/YYYY HH:mm");
+        const fecha = moment();
+        guia.fecha = fecha.toDate();
+        guia.timeline = fecha.valueOf();
+        guia.fechaNatural = fecha.format();
 
         // Cotizamos antes de generar la guía, para validar información y costos
         const respuestaCotizacion = await cotizador(guia);
@@ -70,10 +71,10 @@ exports.agregarSeguimiento = async (req, res) => {
             return RError(req, res, safePrse.error.issues, 400);
         }
 
-        const fecha = new Date(); 
-        seguimiento.fecha = fecha;
-        seguimiento.timeline = fecha.getTime();
-        seguimiento.fechaNatural = estandarizarFecha(fecha, "DD/MM/YYYY HH:mm");
+        const fecha = moment();
+        seguimiento.fecha = fecha.toDate();
+        seguimiento.timeline = fecha.valueOf();
+        seguimiento.fechaNatural = fecha.format();
 
         const infoGuia = await obtenerEnvio(idEnvio);
 

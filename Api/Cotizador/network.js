@@ -39,6 +39,12 @@ const ciudades = {
         ciudad: "BOGOTA",
         departamento: "CUNDINAMARCA",
         tipoValidez: autorizacionCiudad.MIXTO
+    },
+    25754000: {
+        dane: 25754000,
+        ciudad: "SOACHA",
+        departamento: "CUNDINAMARCA",
+        tipoValidez: autorizacionCiudad.MIXTO
     }
 }
 

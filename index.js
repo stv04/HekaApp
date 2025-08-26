@@ -3,6 +3,11 @@ const routers = require("./Api/index.js");
 const swaggerDocs = require("./config/swagger.js");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const moment = require('moment-timezone');
+
+// Configuramos uso horario de la aplicación
+moment.tz.setDefault('America/Bogota');
+moment.defaultFormat = "YYYY-MM-DD HH:mm";
 
 const port = process.env.PORT || 6201;
 const app = express();
