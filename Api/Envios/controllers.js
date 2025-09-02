@@ -3,7 +3,7 @@ const { RSuccess, RError, RCatchError, ThrowError } = require("../../Network/res
 const { SchNuevoEnvio, SchEstado } = require("../../Schemas/envios");
 const { estandarizarFecha } = require("../../Utils/funciones");
 const { cotizador } = require("../Cotizador/network");
-const { idGuia, generarEnvio, guardarEstado, obtenerEstados, obtenerEnvio, actualizarRutaEntrega, obtenerRutaEntrega, enviosMensajeroPorEstadoRecepcion, rutaEntregaGuia, obtenerEnvioByNumeroGuia, envioARuta, obtenerUltimoEstado, actualizarEnvio, crearRutaEntrega } = require("./network");
+const { idGuia, generarEnvio, guardarEstado, obtenerEstados, obtenerEnvio, actualizarRutaEntrega, obtenerRutaEntrega, enviosMensajeroPorEstadoRecepcion, rutaEntregaGuia, obtenerEnvioByNumeroGuia, envioARuta, obtenerUltimoEstado, actualizarEnvio, crearRutaEntrega, obtenerEnvios } = require("./network");
 const { estadosRecepcion } = require("../../Network/constants");
 const config = require("../../config/config");
 const moment = require('moment-timezone');
@@ -56,6 +56,21 @@ exports.crearEnvio = async (req, res) => {
 }
 
 
+exports.obtenerEnvios = async (req, res) => {
+    try {
+        const filtro = req.query;
+        
+        const response = await obtenerEnvios(filtro);
+        // finalmente se devuelve la estructura de respuesta
+        RSuccess(req, res, response);
+
+    } catch (e) {
+        console.log(e);
+        RCatchError(req, res, e);
+    }
+}
+
+
 exports.agregarSeguimiento = async (req, res) => {
     try {
         const seguimiento = req.body;
@@ -77,6 +92,7 @@ exports.agregarSeguimiento = async (req, res) => {
         seguimiento.fechaNatural = fecha.format();
 
         const infoGuia = await obtenerEnvio(idEnvio);
+        if(infoGuia.estado_recepcion === estadosRecepcion.entregado) throw new Error("No se puede actualizar más estados, ya que el envío ha sido entregado.");
 
         const actualizacionEnvio = {
             estado_recepcion: seguimiento.tipo,

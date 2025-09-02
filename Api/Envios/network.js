@@ -9,6 +9,7 @@ const { cotizarCoord, calcularPreciosAdicionalesCoordinadora } = require("../Coo
 const transportadoras = require("../../config/transportadoras");
 const respuestasError = require("../../Network/respuestasError");
 const config = require("../../config/config");
+const moment = require("moment-timezone");
 
 const collectionEnvios = collection(db, "envios");
 let universalId = null;
@@ -78,14 +79,34 @@ exports.obtenerEnvio = async (idEnvio) => {
     }
 }
 
-exports.obtenerEnvios = async () => {
+exports.obtenerEnvios = async (filtro) => {
     try {
         const dataCollection = collectionEnvios;
+
+        let q = query(dataCollection, orderBy("timeline", "desc"));
+
+        // Eliminamos la fecha para estos casos, para que se busque la información completa de estos dos tipos de filtrado
+        if(['numeroGuia', 'id_agrupacion_guia'].includes(filtro.key)) {
+            filtro.fecha_inicio = null; 
+        }
+        
+        if(filtro.fecha_inicio && filtro.fecha_fin) {
+            const inicio = moment(filtro.fecha_inicio).valueOf();
+            const fin = moment(filtro.fecha_fin).valueOf();
+            q = query(q, where("timeline", ">=", inicio), where("timeline", "<", fin));
+        }
+        
+        if(filtro.key && filtro.value) {
+            q = query(q, where(filtro.key, "==", filtro.value));
+        }
     
-        const q = query(dataCollection, orderBy("timeline", "desc"));
         const envios = await getDocs(q);
         
-        return envios.docs.map(d => d.data());
+        return envios.docs.map(d => {
+            const data = d.data();
+            data.id = d.id;
+            return data;
+        });
 
     } catch (e) {
         ThrowError(e.message, 500);

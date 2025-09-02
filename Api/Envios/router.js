@@ -1,9 +1,10 @@
-const { crearEnvio, agregarSeguimiento, obtenerSeguimiento, actualizarRuta, obtenerRutasMensajero, obtenerRuta } = require("./controllers");
+const { crearEnvio, agregarSeguimiento, obtenerSeguimiento, actualizarRuta, obtenerRutasMensajero, obtenerRuta, obtenerEnvios } = require("./controllers");
 
 const express = require("express");
 const { obtenerEstados } = require("./network");
 const router = express.Router();
 
+router.get("/", obtenerEnvios);
 router.post("/Nuevo", crearEnvio);
 router.post("/Seguimiento/:idEnvio", agregarSeguimiento);
 router.get("/Seguimiento/:idEnvio", obtenerSeguimiento);
