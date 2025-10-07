@@ -97,8 +97,12 @@ exports.agregarSeguimiento = async (req, res) => {
 
         const actualizacionEnvio = {
             estado_recepcion: seguimiento.tipo,
-            estado: seguimiento.estado
+            estado: seguimiento.estado,
+            ultimaActualizacionEstado: seguimiento.fechaNatural
         }
+
+        // Le agregamos la fecha del primer estado en caso de que no tenga
+        if(!infoGuia.primeraActualizacionEstado) actualizacionEnvio.primeraActualizacionEstado = seguimiento.fechaNatural;
 
         // Una vez este estado es ingresado por primera vez, 
         // automáticamente la guía se marca como una devolución permanente
