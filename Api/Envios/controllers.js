@@ -92,6 +92,7 @@ exports.agregarSeguimiento = async (req, res) => {
         seguimiento.fechaNatural = fecha.format();
 
         const infoGuia = await obtenerEnvio(idEnvio);
+        if(!infoGuia.estado_recepcion && seguimiento.tipo !== estadosRecepcion.recibido) throw new Error("Se debe recibir el pedido antes de poder actualizar los estados.");
         if(infoGuia.estado_recepcion === estadosRecepcion.entregado) throw new Error("No se puede actualizar más estados, ya que el envío ha sido entregado.");
 
         const actualizacionEnvio = {

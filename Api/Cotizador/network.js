@@ -24,36 +24,36 @@ const cotizacionesDisponibLes = {
 const autorizacionCiudad = {
     ORIGEN: "ORIGEN",
     DESTINO: "DESTINO",
-    MIXTO: "MIXTO"
+    MIXTA: "MIXTA"
 }
 
 const ciudades = {
     54001000: {
-        dane: 54001000,
+        dane_ciudad: 54001000,
         ciudad: "CUCUTA",
         departamento: "NORTE DE SANTANDER",
-        tipoValidez: autorizacionCiudad.ORIGEN // Al ser nulo, se trata de un destino inactivo tanto para recibir como para envíar
+        disponibilidad: autorizacionCiudad.ORIGEN // Al ser nulo, se trata de un destino inactivo tanto para recibir como para envíar
     },
     11001000: {
-        dane: 11001000,
+        dane_ciudad: 11001000,
         ciudad: "BOGOTA",
         departamento: "CUNDINAMARCA",
-        tipoValidez: autorizacionCiudad.MIXTO
+        disponibilidad: autorizacionCiudad.MIXTA
     },
     25754000: {
-        dane: 25754000,
+        dane_ciudad: 25754000,
         ciudad: "SOACHA",
         departamento: "CUNDINAMARCA",
-        tipoValidez: autorizacionCiudad.MIXTO
+        disponibilidad: autorizacionCiudad.MIXTA
     }
 }
 
 const calculatePesoVolumetrico = (volumen) => volumen * PESO_VOLUMETRICO;
 
 function validarTipoCotizacion(ciudadA, ciudadB) {
-    if(ciudadA.dane === ciudadB.dane) {
+    if(ciudadA.dane_ciudad === ciudadB.dane_ciudad) {
         return tiposDeCotizacion.URBAN;
-    } else if (ciudadA.dane !== ciudadB.dane && ciudadA.departamento === ciudadB.departamento) {
+    } else if (ciudadA.dane_ciudad !== ciudadB.dane_ciudad && ciudadA.departamento === ciudadB.departamento) {
         return tiposDeCotizacion.DEPARTAMENTAL;
     } else {
         return tiposDeCotizacion.NACIONAL;
@@ -100,25 +100,37 @@ exports.cotizador = async (reqCotizacion) => {
     const {alto, ancho, largo, id_user} = reqCotizacion;
 
     // Se busca primero la ciudad destino para analizar disponibilidad
+    const ciudadOrigen = await getOne(reqCotizacion.idDaneCiudadOrigen);
     const ciudadDestino = await getOne(reqCotizacion.idDaneCiudadDestino);
 
     // si se encuentra bloqueada, retorna error porque significa que para la ciudad proporcionada no hay disponibilidad
     if(ciudadDestino.bloqueada) ThrowSpecifiedError(respuestasError.C001);
 
-    const configCiudadOrigen = ciudades[reqCotizacion.idDaneCiudadOrigen];
+    // const configCiudadOrigen = ciudades[reqCotizacion.idDaneCiudadOrigen];
     if(
-        !configCiudadOrigen 
-        || ![autorizacionCiudad.ORIGEN, autorizacionCiudad.MIXTO].includes(configCiudadOrigen.tipoValidez)
-    ) ThrowSpecifiedError(respuestasError.C008);
+        !ciudadOrigen 
+        || ![autorizacionCiudad.ORIGEN, autorizacionCiudad.MIXTA].includes(ciudadOrigen.disponibilidad)
+    ) {
+        if(ciudadOrigen.transp_respaldo) {
+            
+            return {
+                message: 'Ciudad Origen no disponible con Heka', 
+                transp_respaldo: ciudadOrigen.transp_respaldo
+            }
 
-    const configCiudadDestino = ciudades[reqCotizacion.idDaneCiudadDestino];
+        } else {
+            ThrowSpecifiedError(respuestasError.C008);
+        }
+    }
+
+    // const configCiudadDestino = ciudades[reqCotizacion.idDaneCiudadDestino];
     if(
-        !configCiudadDestino 
-        || ![autorizacionCiudad.DESTINO, autorizacionCiudad.MIXTO].includes(configCiudadDestino.tipoValidez)
+        !ciudadDestino 
+        || ![autorizacionCiudad.DESTINO, autorizacionCiudad.MIXTA].includes(ciudadDestino.disponibilidad)
     ) ThrowSpecifiedError(respuestasError.C006);
 
     const preciosUsuario = await getPricesByUser(id_user);
-    const tipoDeCotizacion = validarTipoCotizacion(configCiudadOrigen, configCiudadDestino);
+    const tipoDeCotizacion = validarTipoCotizacion(ciudadOrigen, ciudadDestino);
     
     const pesoVolumetrico = calculatePesoVolumetrico(alto*ancho*largo);
     const pesoTomado = Math.ceil(Math.max(reqCotizacion.peso, pesoVolumetrico));
