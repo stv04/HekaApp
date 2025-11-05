@@ -22,6 +22,14 @@ exports.crearEnvio = async (req, res) => {
             return RError(req, res, safePrse.error.issues, 400);
         }
 
+        // TODO: Arreglar esto a penas se corrija desde refactor
+        if(!guia.info_destino.barrio) {
+            guia.info_destino.barrio = "N/A";
+        }
+        if(!guia.info_destino.localidad) {
+            guia.info_destino.localidad = "N/A";
+        }
+
         const fecha = moment();
         guia.fecha = fecha.toDate();
         guia.timeline = fecha.valueOf();

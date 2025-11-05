@@ -41,8 +41,8 @@ const SchBasicDataEnvios = z.object({
     info_destino: z.object({
         nombre_completo: z.string(),
         direccion: z.string(),
-        barrio: z.string().nullable(),
-        localidad: z.string().nullable(),
+        // barrio: z.string().nullable(),
+        // localidad: z.string().nullable(),
         celular: z.number(),
         numero_identificacion: z.string().nullable(),
         tipo_identificacion: z.string().nullable(),
