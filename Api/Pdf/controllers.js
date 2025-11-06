@@ -60,8 +60,13 @@ exports.pdfRelacionEnvio = async (req, res) => {
         const envios = [];
 
         for (const id of ids) {
-            const envio = await obtenerEnvio(id);
-            envios.push(envio);
+            if(typeof id === "string") {
+                const envio = await obtenerEnvio(id);
+                envios.push(envio);
+            } else {
+               const envio =  id.id ? await obtenerEnvio(id.id) : await obtenerEnvioByNumeroGuia(id.numeroGuia);
+               envios.push(envio); 
+            }
         }
 
         const fondoPdf = getBase64Image("Group.png");
