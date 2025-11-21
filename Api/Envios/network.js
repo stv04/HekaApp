@@ -92,12 +92,28 @@ exports.obtenerEnvios = async (filtro) => {
         
         if(filtro.fecha_inicio && filtro.fecha_fin) {
             const inicio = moment(filtro.fecha_inicio).valueOf();
-            const fin = moment(filtro.fecha_fin).valueOf();
+            const fin = moment(filtro.fecha_fin).add(1, 'day').valueOf(); // Para buscar hasta el día siguiente a las 00 horas
             q = query(q, where("timeline", ">=", inicio), where("timeline", "<", fin));
         }
-        
+
+        // Este filtro especial tiene su propio control
         if(filtro.key && filtro.value) {
-            q = query(q, where(filtro.key, "==", filtro.value));
+            const values = filtro.value.split(",");
+            const dataResult = [];
+            for (let value of values) {
+                const finalSubQuery = query(q, where(filtro.key, "==", value));
+
+                const envios = await getDocs(finalSubQuery);
+                
+                envios.docs.forEach(d => {
+                    const data = d.data();
+                    data.id = d.id;
+                    dataResult.push(data);
+                });
+
+            }
+
+            return dataResult;
         }
     
         const envios = await getDocs(q);
