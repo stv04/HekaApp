@@ -23,11 +23,8 @@ exports.crearEnvio = async (req, res) => {
         }
 
         // TODO: Arreglar esto a penas se corrija desde refactor
-        if(!guia.info_destino.barrio) {
-            guia.info_destino.barrio = "N/A";
-        }
-        if(!guia.info_destino.localidad) {
-            guia.info_destino.localidad = "N/A";
+        if(guia.info_destino.barrio === undefined) {
+            guia.info_destino.barrio = null;
         }
 
         const fecha = moment();
