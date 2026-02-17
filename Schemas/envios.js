@@ -6,6 +6,7 @@ const translation = require("zod-i18n-map/locales/es/zod.json");
 const { CONVENCIONAL, PAGO_CONTRAENTREGA, CONTRAENTREGA } = require("../config/constantes");
 const { generarReferencia } = require("../Utils/swaggerGen");
 const { SchCotizar } = require("./cotizador");
+const { estadosRecepcion } = require("../Network/constants");
 
 i18next.init({
     lng: "es",
@@ -61,11 +62,13 @@ const SchNuevoEnvio = SchBasicDataEnvios.merge(SchCotizar);
 
 const SchEstado = z.object({
     estado: z.string(),
+    tipo: z.enum(Object.values(estadosRecepcion)),
     descripcion: z.string(),
     esNovedad: z.boolean(),
     observaciones: z.string().nullable(),
     ubicacion: z.string().nullable(),
-    reporter: z.string()
+    reporter: z.string(),
+    reporter_name: z.string().optional()
 });
 
 function unwrap(schema, parent) {

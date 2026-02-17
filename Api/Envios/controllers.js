@@ -3,7 +3,7 @@ const { RSuccess, RError, RCatchError, ThrowError } = require("../../Network/res
 const { SchNuevoEnvio, SchEstado } = require("../../Schemas/envios");
 const { estandarizarFecha } = require("../../Utils/funciones");
 const { cotizador } = require("../Cotizador/network");
-const { idGuia, generarEnvio, guardarEstado, obtenerEstados, obtenerEnvio, actualizarRutaEntrega, obtenerRutaEntrega, enviosMensajeroPorEstadoRecepcion, rutaEntregaGuia, obtenerEnvioByNumeroGuia, envioARuta, obtenerUltimoEstado, actualizarEnvio, crearRutaEntrega, obtenerEnvios } = require("./network");
+const { idGuia, generarEnvio, guardarEstado, obtenerEstados, obtenerEnvio, actualizarRutaEntrega, obtenerRutaEntrega, enviosMensajeroPorEstadoRecepcion, rutaEntregaGuia, obtenerEnvioByNumeroGuia, envioARuta, obtenerUltimoEstado, actualizarEnvio, crearRutaEntrega, obtenerEnvios, actualizarEstadosExterno } = require("./network");
 const { estadosRecepcion } = require("../../Network/constants");
 const config = require("../../config/config");
 const moment = require('moment-timezone');
@@ -81,8 +81,6 @@ exports.agregarSeguimiento = async (req, res) => {
         const seguimiento = req.body;
         const { idEnvio } = req.params;
 
-        const apiPatchEstado = config.ENVIRONMENT === "dev" ? "http://localhost:6200/procesos/actualizarEstado/" : "https:admin.hekaentrega.co/procesos/actualizarEstado/";
-
         // Se valida que el formato recibido sea el correcto
         const safePrse = SchEstado.safeParse(seguimiento);
 
@@ -99,11 +97,22 @@ exports.agregarSeguimiento = async (req, res) => {
         const infoGuia = await obtenerEnvio(idEnvio);
         if(!infoGuia.estado_recepcion && seguimiento.tipo !== estadosRecepcion.recibido) throw new Error("Se debe recibir el pedido antes de poder actualizar los estados.");
         if(infoGuia.estado_recepcion === estadosRecepcion.entregado) throw new Error("No se puede actualizar más estados, ya que el envío ha sido entregado.");
-
+ 
         const actualizacionEnvio = {
             estado_recepcion: seguimiento.tipo,
             estado: seguimiento.estado,
             ultimaActualizacionEstado: seguimiento.fechaNatural
+        }
+        
+        // Agregamos el usuario  (mensajero) receptor, en caso de que no exista uno registrado
+        if(!infoGuia.mensajero_receptor && seguimiento.reporter_name) {
+            actualizacionEnvio.mensajero_receptor = seguimiento.reporter_name;
+        }
+
+        // Agregamos el usuario (mensajero) emisor, cuando el estado sea entregado.
+        // Para indicar que mensajero ha entregado el paquete
+        if(seguimiento.tipo === estadosRecepcion.entregado) {
+            actualizacionEnvio.mensajero_emisor = seguimiento.reporter_name;
         }
 
         // Le agregamos la fecha del primer estado en caso de que no tenga
@@ -121,18 +130,7 @@ exports.agregarSeguimiento = async (req, res) => {
             message: "Estado guardado correctamente"
         }
 
-        await fetch(apiPatchEstado + infoGuia.numeroGuia, {
-            method: "POST",
-            headers: {
-                "Content-type": "Application/json"
-            },
-            body: JSON.stringify(seguimiento)
-        })
-        .then(d => d.json())
-        .then(d => console.log(d))
-        .catch(e => {
-            console.log("Error al actualizar con plataforma: " + e.message);
-        });
+        await actualizarEstadosExterno(infoGuia, seguimiento);
 
         // finalmente se devuelve la estructura de respuesta
         RSuccess(req, res, response);

@@ -222,6 +222,40 @@ exports.obtenerUltimoEstado = async (idEnvio) => {
     }
 }
 
+exports.actualizarEstadosExterno = async (envio, estado) => {
+    try {
+        const dataCollection = doc(db, "infoHeka", "external_hooks");
+    
+        const configuration = await getDoc(dataCollection);
+        if(!configuration.exists()) return;
+
+        const {hooks} = configuration.data();
+
+        const hooksSent = hooks.map(async (h) => {
+            const headers = new Headers();
+            headers.append('Content-Type', 'Application/json');
+            if(h.basicAuth) headers.append('authorization', h.basicAuth);
+            if(h.apiKey) headers.append('Api-Key', h.apiKey);
+
+            return fetch(`${h.path}/${envio.numeroGuia}`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(estado)
+            })
+            .then(d => d.json())
+            .then(d => console.log(d))
+            .catch(e => {
+                console.error(`Error al actualizar con plataforma "${h.platform}": ${e.message}`);
+            });
+        });
+
+        await Promise.all(hooksSent);
+
+    } catch (e) {
+        console.error("Error al actualizar envíos externos: " + e.message);
+    }
+}
+
 
 exports.actualizarRutaEntrega = async (idUser, data) => {
     const docGestion = doc(db, "rutaEntrega", idUser);
