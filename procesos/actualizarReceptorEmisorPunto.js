@@ -1,7 +1,7 @@
-const { collection, getDocs, query, getDoc, doc } = require("firebase/firestore");
+const { collection, getDocs, query, getDoc, doc, limit, updateDoc, orderBy } = require("firebase/firestore");
 const { db } = require("../storage/firebase");
 
-updateTransmitterReceiver();
+// updateTransmitterReceiver();
 async function updateTransmitterReceiver() {
     const coll = collection(db, 'envios');
     const docs = await getDocs(coll);
@@ -15,7 +15,8 @@ async function updateTransmitterReceiver() {
         totalCount: 0,
         no_status: 0,
         duration: 0,
-        updated: 0
+        updated: 0,
+        not_updated: 0
     };
     const initial = Date.now();
 
@@ -39,7 +40,7 @@ async function updateTransmitterReceiver() {
         if(data.mensajero_receptor && data.mensajero_emisor) return close();
 
         const collDocs = collection(db, d.ref.path, 'estados');
-        const statusDocs = await getDocs(collDocs);
+        const statusDocs = await getDocs(query(collDocs, orderBy('timeline', 'asc')));
         
         if(!statusDocs.size) {
             report.no_status++;
@@ -48,10 +49,13 @@ async function updateTransmitterReceiver() {
         const statuses = statusDocs.docs.map(dd => dd.data());
         const [firstStatus] = statuses;
         const lastStatus = statuses.find(es => es.tipo === 'ENTREGADO');
+        
+        const receiver = !data.mensajero_receptor 
+            ? await getCostCenter(firstStatus.reporter)
+            : null;
 
-        const transmitter = !data.mensajero_emisor ? await getCostCenter(firstStatus.reporter) : null;
-        const receiver = !data.mensajero_receptor && lastStatus?.reporter 
-            ? await getCostCenter(lastStatus.reporter) 
+        const transmitter = !data.mensajero_emisor && lastStatus?.reporter 
+            ? await getCostCenter(lastStatus.reporter)
             : null;
 
         const dataToUpdate = {};
@@ -67,6 +71,10 @@ async function updateTransmitterReceiver() {
         }
 
         report.analized++;
+
+        await updateDoc(d.ref, dataToUpdate)
+        .then(() => report.updated++)
+        .catch(() => report.not_updated++);
 
         close();
 

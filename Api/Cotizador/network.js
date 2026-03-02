@@ -111,12 +111,13 @@ exports.cotizador = async (reqCotizacion) => {
         !ciudadOrigen 
         || ![autorizacionCiudad.ORIGEN, autorizacionCiudad.MIXTA].includes(ciudadOrigen.disponibilidad)
     ) {
+        return {
+            message: 'Ciudad Origen no disponible con Heka', 
+            transp_respaldo: 'interrapidisimo'
+        };
+
         if(ciudadOrigen.transp_respaldo) {
             
-            return {
-                message: 'Ciudad Origen no disponible con Heka', 
-                transp_respaldo: ciudadOrigen.transp_respaldo
-            }
 
         } else {
             ThrowSpecifiedError(respuestasError.C008);
