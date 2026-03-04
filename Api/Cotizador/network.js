@@ -128,7 +128,14 @@ exports.cotizador = async (reqCotizacion) => {
     if(
         !ciudadDestino 
         || ![autorizacionCiudad.DESTINO, autorizacionCiudad.MIXTA].includes(ciudadDestino.disponibilidad)
-    ) ThrowSpecifiedError(respuestasError.C006);
+    ) {
+        return {
+            message: 'Ciudad Origen no disponible con Heka', 
+            transp_respaldo: 'interrapidisimo'
+        };
+        
+        ThrowSpecifiedError(respuestasError.C006);
+    }
 
     const preciosUsuario = await getPricesByUser(id_user);
     const tipoDeCotizacion = validarTipoCotizacion(ciudadOrigen, ciudadDestino);
