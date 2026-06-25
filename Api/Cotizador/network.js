@@ -111,29 +111,14 @@ exports.cotizador = async (reqCotizacion) => {
         !ciudadOrigen 
         || ![autorizacionCiudad.ORIGEN, autorizacionCiudad.MIXTA].includes(ciudadOrigen.disponibilidad)
     ) {
-        return {
-            message: 'Ciudad Origen no disponible con Heka', 
-            transp_respaldo: 'interrapidisimo'
-        };
-
-        if(ciudadOrigen.transp_respaldo) {
-            
-
-        } else {
-            ThrowSpecifiedError(respuestasError.C008);
-        }
+        ThrowSpecifiedError(respuestasError.C008);
     }
 
     // const configCiudadDestino = ciudades[reqCotizacion.idDaneCiudadDestino];
     if(
         !ciudadDestino 
         || ![autorizacionCiudad.DESTINO, autorizacionCiudad.MIXTA].includes(ciudadDestino.disponibilidad)
-    ) {
-        return {
-            message: 'Ciudad Origen no disponible con Heka', 
-            transp_respaldo: 'interrapidisimo'
-        };
-        
+    ) {       
         ThrowSpecifiedError(respuestasError.C006);
     }
 
